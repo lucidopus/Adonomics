@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Adonomics: Creative Genome - Performance Insights Dashboard
 
-## Getting Started
+An AI-powered tool that analyzes video ads to explain *why* they worked, not just *what* happened.
 
-First, run the development server:
+## The Problem
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Marketers and creative teams often make subjective decisions about ad creative, leading to inefficient A/B testing and wasted ad spend. It's difficult to pinpoint the exact creative elements—a specific scene, an emotional tone, a piece of music—that drive campaign performance and brand lift.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Our Solution
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+The Creative Genome project is an AI-powered dashboard that turns subjective creative decisions into data-backed guidance. It dissects video ads to map their "emotional DNA," providing actionable insights to optimize creative strategy.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The tool works by:
+1.  Breaking down each video ad into its constituent scenes.
+2.  Analyzing each scene for emotional arcs (e.g., joy, humor, tension), objects, and pacing using advanced Video and Sentiment AI.
+3.  Cross-referencing this analysis with performance data (e.g., persuasion metrics, conversion rates, CTR).
+4.  Surfacing insights that show which creative elements are driving results.
 
-## Learn More
+This allows marketers to move beyond blind A/B tests and understand the "so what" behind their ad performance.
 
-To learn more about Next.js, take a look at the following resources:
+## Key Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+*   **Scene-by-Scene Analysis:** Deconstructs video ads to understand their structure and content.
+*   **Emotional Arc Mapping:** Labels the tone and sentiment of each scene to build an emotional journey for the ad.
+*   **Performance Correlation:** Links creative elements to business outcomes and KPIs.
+*   **Actionable Insights Dashboard:** Visualizes data to help creative teams make informed decisions and justify creative spend.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Target Audience
 
-## Deploy on Vercel
+This tool is designed for the B2B marketing analytics space, including:
+*   **Advertisers & Agencies:** Primarily mid-to-large brands and the agencies that serve them.
+*   **Marketing Leaders:** CMOs and Creative Directors who need to prove the ROI of creative work.
+*   **Media Strategists & Planners:** Teams that want to refine creative strategy with data.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Proposed Tech Stack
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*   **Video AI:** Scene detection and object recognition (e.g., Twelve Labs).
+*   **Sentiment & Emotion AI:** Tone and expression analysis (e.g., Hume, OpenAI).
+*   **Data & Performance:** Integration with persuasion metrics platforms (e.g., Swayable).
+*   **Infrastructure:** Cloud-based SaaS application.
+*   **Data Backend:** Data warehouse and BI tools for analysis and visualization (e.g., Snowflake, PowerBI).
