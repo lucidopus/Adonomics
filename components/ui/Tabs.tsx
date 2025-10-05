@@ -27,17 +27,17 @@ export default function Tabs({ tabs, defaultTab }: TabsProps) {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-300 flex-1 ${
+            className={`relative px-6 py-3 rounded-xl font-medium text-sm transition-all duration-200 flex-1 ${
               activeTab === tab.id
-                ? 'text-primary bg-background shadow-lg'
-                : 'text-muted-foreground hover:text-foreground hover:bg-background/50'
+                ? 'text-primary bg-background'
+                : 'text-muted-foreground'
             }`}
           >
             {activeTab === tab.id && (
               <motion.div
                 layoutId="activeTab"
-                className="absolute inset-0 bg-background rounded-xl shadow-lg border border-border"
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="absolute inset-0 bg-background rounded-xl border border-border"
+                transition={{ duration: 0.2 }}
               />
             )}
             <span className="relative z-10">{tab.label}</span>

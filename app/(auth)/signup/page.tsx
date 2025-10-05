@@ -24,8 +24,6 @@ export default function SignupPage() {
             <div className="text-center mb-8">
               <motion.div
                 className="inline-flex items-center justify-center w-16 h-16 bg-black dark:bg-white rounded-2xl mb-4 shadow-apple-lg"
-                whileHover={{ scale: 1.05, rotate: -5 }}
-                transition={{ type: "spring", stiffness: 400 }}
               >
                 <svg className="w-8 h-8 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -40,7 +38,7 @@ export default function SignupPage() {
             <div className="mt-6 text-center">
               <p className="text-sm text-muted-foreground">
                 Already have an account?{' '}
-                <Link href="/login" className="text-foreground hover:opacity-70 font-medium transition-opacity underline">
+                <Link href="/login" className="text-foreground font-medium underline">
                   Sign in
                 </Link>
               </p>

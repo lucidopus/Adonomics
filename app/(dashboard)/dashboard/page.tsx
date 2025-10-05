@@ -99,7 +99,7 @@ export default function DashboardPage() {
             className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeView === 'profile'
                 ? 'bg-primary/10 text-primary'
-                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                : 'text-muted-foreground'
             }`}
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -130,7 +130,7 @@ export default function DashboardPage() {
         <div className="p-4 border-t border-border space-y-2">
           <button
             onClick={() => window.location.href = '/onboarding'}
-            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-200"
+            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground transition-all duration-200"
           >
             <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -162,7 +162,7 @@ export default function DashboardPage() {
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                className="p-2 rounded-lg transition-colors"
                 aria-label="Sign out"
               >
                 <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -187,8 +187,6 @@ export default function DashboardPage() {
                 <div className="flex items-center">
                   <motion.div
                     className="w-14 h-14 bg-gradient-to-br from-primary to-primary/60 rounded-2xl flex items-center justify-center mr-4 shadow-lg"
-                    whileHover={{ scale: 1.05, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
                   >
                     <svg className="w-7 h-7 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -219,7 +217,7 @@ export default function DashboardPage() {
                 <div className="mt-6 flex justify-end">
                   <button
                     onClick={() => window.location.href = '/onboarding'}
-                    className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all duration-200 shadow-sm"
+                    className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium transition-all duration-200 shadow-sm"
                   >
                     Update Preferences
                   </button>

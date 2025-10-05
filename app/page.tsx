@@ -38,8 +38,6 @@ export default function HomePage() {
           <div className="flex justify-between h-16 items-center">
             <motion.div
               className="flex items-center space-x-2"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400 }}
             >
               <div className="w-8 h-8 bg-black dark:bg-white rounded-lg"></div>
               <h1 className="text-xl font-bold">
@@ -100,18 +98,14 @@ export default function HomePage() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
           >
             <Link href="/signup">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="w-full sm:w-auto">
-                  Start Free Trial
-                </Button>
-              </motion.div>
+              <Button size="lg" className="w-full sm:w-auto">
+                Start Free Trial
+              </Button>
             </Link>
             <Link href="/login">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                  Watch Demo
-                </Button>
-              </motion.div>
+              <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                Watch Demo
+              </Button>
             </Link>
           </motion.div>
         </motion.div>
@@ -159,13 +153,10 @@ export default function HomePage() {
             <motion.div
               key={index}
               variants={scaleIn}
-              whileHover={{ y: -10, transition: { duration: 0.2 } }}
-              className="bg-card text-card-foreground rounded-2xl p-8 border border-border shadow-apple-lg hover:shadow-apple-xl transition-shadow"
+              className="bg-card text-card-foreground rounded-2xl p-8 border border-border shadow-apple-lg"
             >
               <motion.div
                 className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-black dark:bg-white text-white dark:text-black"
-                whileHover={{ rotate: 360 }}
-                transition={{ duration: 0.6 }}
               >
                 {feature.icon}
               </motion.div>
@@ -208,11 +199,9 @@ export default function HomePage() {
             transition={{ delay: 0.4 }}
           >
             <Link href="/signup">
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" className="bg-white dark:bg-black text-black dark:text-white hover:opacity-90">
-                  Get Started Free
-                </Button>
-              </motion.div>
+              <Button size="lg" className="bg-white dark:bg-black text-black dark:text-white">
+                Get Started Free
+              </Button>
             </Link>
           </motion.div>
         </motion.div>
