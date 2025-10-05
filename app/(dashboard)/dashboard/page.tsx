@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import Tabs from '@/components/ui/Tabs'
+import VideoSearch from '@/components/VideoSearch'
+import VideoAnalysis from '@/components/VideoAnalysis'
+import HomeDashboard from '@/components/HomeDashboard'
 import { generateUserProfileSummary } from '@/lib/user-profile-summary'
 
 interface User {
@@ -12,13 +16,13 @@ interface User {
   name?: string
 }
 
-type ActiveView = 'profile'
+type ActiveView = 'home' | 'profile' | 'search' | 'analysis'
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [profileSummary, setProfileSummary] = useState<string>('')
-  const [activeView, setActiveView] = useState<ActiveView>('profile')
+  const [activeView, setActiveView] = useState<ActiveView>('home')
 
   useEffect(() => {
     async function checkAuth() {
@@ -95,6 +99,20 @@ export default function DashboardPage() {
         {/* Navigation Links */}
         <nav className="flex-1 p-4 space-y-2">
           <button
+            onClick={() => setActiveView('home')}
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeView === 'home'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Home
+          </button>
+
+          <button
             onClick={() => setActiveView('profile')}
             className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
               activeView === 'profile'
@@ -108,7 +126,33 @@ export default function DashboardPage() {
             Profile
           </button>
 
-          {/* Placeholder for future navigation items - add more tabs here */}
+          <button
+            onClick={() => setActiveView('search')}
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeView === 'search'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            Video Search
+          </button>
+
+          <button
+            onClick={() => setActiveView('analysis')}
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeView === 'analysis'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Video Analysis
+          </button>
           {/* Example for future agents:
           <button
             onClick={() => setActiveView('dashboard')}
@@ -175,6 +219,16 @@ export default function DashboardPage() {
 
         {/* Content Area - Views are rendered here based on activeView state */}
         <main className="flex-1 overflow-auto p-8">
+          {activeView === 'home' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <HomeDashboard />
+            </motion.div>
+          )}
+
           {activeView === 'profile' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -226,21 +280,25 @@ export default function DashboardPage() {
             </motion.div>
           )}
 
-          {/* Placeholder for future views - add more content sections here */}
-          {/* Example for future agents:
-          {activeView === 'dashboard' && (
+          {activeView === 'search' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <h3 className="text-xl font-bold mb-4">Dashboard Content</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                // Add dashboard cards here
-              </div>
+              <VideoSearch />
             </motion.div>
           )}
-          */}
+
+          {activeView === 'analysis' && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <VideoAnalysis />
+            </motion.div>
+          )}
         </main>
       </div>
     </div>
