@@ -377,48 +377,48 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+             transition={{ duration: 0.3 }}
           >
-            <div className="glass shadow-apple-lg rounded-3xl overflow-hidden border border-border">
-              <div className="p-8 md:p-12 backdrop-blur-xl">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-3">
-                     What&apos;s your role?
-                  </h2>
-                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                    Help us personalize your dashboard experience
-                  </p>
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  {ROLE_OPTIONS.map((option, index) => (
-                     <button
-                       key={option.value}
-                       type="button"
-                       onClick={() => handleRoleSelect(option.value)}
-                        className={`group p-6 text-left rounded-2xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                          formData.role === option.value
-                            ? 'border-primary bg-primary/10 shadow-apple-lg'
-                            : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
-                        }`}
-                     >
-                      <div className="flex items-start space-x-4">
-                        <div className={`w-3 h-3 rounded-full mt-2 transition-all ${
-                          formData.role === option.value ? 'bg-black dark:bg-white' : 'bg-muted-foreground/30'
-                        }`} />
-                        <div className="flex-1">
-                          <div className="font-semibold text-lg mb-1">
-                            {option.label}
-                          </div>
-                          <div className="text-sm text-muted-foreground leading-relaxed">
-                            {option.description}
-                           </div>
-                         </div>
-                       </div>
-                     </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>What&apos;s your role?</CardTitle>
+                <CardDescription>
+                  Help us personalize your dashboard experience
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {ROLE_OPTIONS.map((option) => (
+                   <button
+                     key={option.value}
+                     type="button"
+                     onClick={() => handleRoleSelect(option.value)}
+                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:opacity-70 flex items-start gap-3 relative z-10 ${
+                       formData.role === option.value
+                         ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                         : 'border-border hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'
+                     }`}
+                   >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
+                      formData.role === option.value
+                        ? 'border-primary bg-primary'
+                        : 'border-muted-foreground/40 bg-background'
+                    }`}>
+                      {formData.role === option.value && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary-foreground"></div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-semibold transition-colors ${
+                        formData.role === option.value ? 'text-primary' : ''
+                      }`}>{option.label}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {option.description}
+                      </div>
+                    </div>
+                   </button>
+                ))}
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
@@ -431,73 +431,71 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="glass shadow-apple-lg rounded-3xl overflow-hidden border border-border">
-              <div className="p-8 md:p-12 backdrop-blur-xl">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-3">
-                    Primary Goals
-                  </h2>
-                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
-                    What do you want to achieve with video ad analytics? (Select up to 3)
-                  </p>
-                </div>
-                <div className="grid gap-4">
-                  {PRIMARY_GOAL_OPTIONS.map((option, index) => (
-                     <button
-                       key={option.value}
-                       type="button"
-                       onClick={() => togglePrimaryGoal(option.value)}
-                       className={`group relative p-6 text-left rounded-2xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
-                         formData.primary_goals.includes(option.value)
-                           ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
-                           : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
-                       } ${
-                         formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)
-                           ? 'opacity-50 cursor-not-allowed'
-                           : ''
-                       }`}
-                       disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
-                     >
-                      <div className="flex items-start space-x-4">
-                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+            <Card>
+              <CardHeader>
+                <CardTitle>Primary Goals</CardTitle>
+                <CardDescription>
+                  What do you want to achieve with video ad analytics? (Select up to 3)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {PRIMARY_GOAL_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onClick={() => togglePrimaryGoal(option.value)}
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-start gap-3 z-10 ${
                           formData.primary_goals.includes(option.value)
-                            ? 'bg-primary border-primary scale-110'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
+                        } ${
+                          formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)
+                            ? 'opacity-50 cursor-not-allowed'
+                            : ''
+                        }`}
+                        disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
+                      >
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.primary_goals.includes(option.value)
+                            ? 'bg-primary border-primary'
                             : 'border-muted-foreground/40 bg-background'
                         }`}>
                           {formData.primary_goals.includes(option.value) && (
-                            <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                             </svg>
                           )}
                         </div>
                         <div className="flex-1">
-                          <div className={`font-semibold text-lg mb-1 transition-colors ${
+                          <div className={`font-medium transition-colors ${
                             formData.primary_goals.includes(option.value) ? 'text-primary' : ''
                           }`}>
                             {option.label}
                           </div>
-                          <div className="text-sm text-muted-foreground leading-relaxed">
+                          <div className="text-sm text-muted-foreground">
                             {option.description}
                           </div>
                         </div>
                         {formData.primary_goals.includes(option.value) && (
-                          <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center shadow-lg">
+                          <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary text-primary-foreground font-bold text-sm flex items-center justify-center shadow-lg">
                             {formData.primary_goals.indexOf(option.value) + 1}
                           </div>
                         )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="mt-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {formData.primary_goals.length} of 3
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {formData.primary_goals.length} of 3
-                  </p>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           </motion.div>
         )}
 
@@ -593,16 +591,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                        disabled={formData.decision_factors.length >= 5}
                      >
                        <div className="w-5 h-5 rounded border-2 border-muted-foreground/40 bg-background flex-shrink-0"></div>
-                       <div className="flex-1">
-                         <div className="font-semibold">{option.label}</div>
-                         <div className="text-sm text-muted-foreground">
-                           {option.description}
-                         </div>
-                       </div>
-                     </button>
-                  ))}
-                </div>
-              </CardContent>
+                        <div className="flex-1">
+                          <div className="font-semibold">{option.label}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {option.description}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
             </Card>
           </motion.div>
         )}
