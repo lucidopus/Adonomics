@@ -7,7 +7,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle'
 import VideoSearch from '@/components/VideoSearch'
 import HomeDashboard from '@/components/HomeDashboard'
 import LiveAdsDashboard from '@/components/LiveAdsDashboard'
-import { generateUserProfileSummary } from '@/lib/user-profile-summary'
+
 
 interface User {
   id: string
@@ -47,9 +47,10 @@ export default function DashboardPage() {
           return
         }
 
-        // Generate profile summary
-        const summary = await generateUserProfileSummary(parsedUser.id)
-        setProfileSummary(summary)
+        // Generate profile summary via API
+        const profileResponse = await fetch(`/api/user-profile?userId=${parsedUser.id}`)
+        const profileData = await profileResponse.json()
+        setProfileSummary(profileData.summary || 'Unable to load profile summary')
       } catch (error) {
         console.error('Error checking onboarding status:', error)
         // If we can't check, assume they need onboarding

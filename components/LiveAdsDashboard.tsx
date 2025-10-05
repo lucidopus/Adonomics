@@ -32,6 +32,7 @@ interface LiveAd {
   duration_seconds: number
   platform: string
   upload_date: string
+  status: 'live' | 'uploaded' | 'on hold' | 'rejected'
   metrics: {
     impressions: number
     views: number
