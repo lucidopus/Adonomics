@@ -13,68 +13,36 @@ Adonomics is an AI-powered Creative Genome Performance Insights Dashboard that a
 ### Core Technologies
 - **Frontend**: Next.js (React)
 - **Backend**: Next.js API Routes
-- **Task Orchestration**: Trigger.dev v4 (self-hosted)
-- **Database**: Supabase (Postgres)
-- **Storage**: Supabase Storage
+- **Database**: MongoDB (data storage)
+- **Storage**: Supabase Storage (video files only)
 - **Video Analysis**: Twelve Labs API
 - **AI/LLM**: Amazon Bedrock (qualitative analysis, synthesis)
 - **Voice**: ElevenLabs API
+
 ### Processing Pipeline
 
-The system uses trigger.dev to orchestrate a multi-step analysis pipeline:
+The system processes video analysis directly within Next.js API routes:
 
-1. **analysis-pipeline** (main task) - triggered from Next.js API
-   - Runs `video-analysis` task
-   - Analyzes video content using Twelve Labs API for scene detection, objects, emotional content
-   - Upon completion, triggers `qualitative-analysis` (sends extracted insights to Bedrock)
+1. **Video Upload & Analysis**
+   - Videos uploaded to Supabase Storage
+   - Twelve Labs API analyzes video content for scene detection, objects, emotional content
+   - Analysis results stored in MongoDB
 
-2. **aggregate-and-report** (final task)
-   - Gathers all outputs (Twelve Labs video analysis, AI-generated insights)
-   - Synthesizes final creative recommendations via Bedrock
+2. **AI-Powered Insights**
+   - Extracted insights sent to Amazon Bedrock for qualitative analysis
+   - Synthesizes creative recommendations based on video analysis
    - Generates audio narration via ElevenLabs
-   - Stores complete report in Supabase
+   - Complete report stored in MongoDB
 
 ### API Routes
-- `POST /api/analyze` - Upload video, triggers pipeline
+- `POST /api/analyze` - Upload video, performs analysis
 - `GET /api/reports` - List all reports
 - `GET /api/reports/{id}` - Fetch specific report
 
-### Database Schema
-Single `reports` table with columns: id, status, created_at, video_url, video_analysis (JSONB), qualitative_summary (JSONB), recommendations (TEXT), report_audio_url (TEXT)
+### Database Schema (MongoDB)
+`reports` collection with documents containing: _id, status, created_at, video_url, video_analysis (object), qualitative_summary (object), recommendations (string), report_audio_url (string)
 
 ## Critical Development Rules
-
-### Trigger.dev v4 Requirements
-
-**ALWAYS** follow these patterns when writing trigger.dev tasks:
-
-```typescript
-// ✅ CORRECT - v4 pattern
-import { task } from "@trigger.dev/sdk";
-
-export const myTask = task({
-  id: "unique-task-id",
-  run: async (payload: { data: string }) => {
-    // All task logic goes here
-  },
-});
-```
-
-**NEVER** use these deprecated patterns:
-```typescript
-// ❌ WRONG - v3 or deprecated
-import { task } from "@trigger.dev/sdk/v3";
-client.defineJob({ ... });
-```
-
-**Key Requirements**:
-- Import from `@trigger.dev/sdk` only (NOT `/v3`)
-- Export every task (no unexported tasks)
-- Use unique `id` for each task
-- Use `logger` from SDK for logging
-- All executable code must be inside `task({ run: ... })`
-- Use self-hosted instance - set `TRIGGER_API_URL` environment variable
-- Follow docs/dev_rules/trigger_rules.md for complete guidelines
 
 ### UI Development Rules
 
@@ -122,7 +90,8 @@ To ensure clarity and minimize the gap between AI-generated code and developer u
 
 ## Important Notes
 
-- **No Supabase DB reset** without explicit approval
+- **MongoDB is used for data storage**, Supabase Storage is only for video files
+- **No database operations** without explicit approval
 - **Prefer editing existing files** over creating new ones
 - **Never proactively create documentation files** unless explicitly requested
 - When exploring new folders, read README.md first if it exists
