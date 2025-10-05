@@ -48,7 +48,7 @@ export async function searchSimilarVideos(
     })
 
     // Perform the search using the SDK
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+     
     const searchResults = await (client as any).search.create({
       indexId: indexId || process.env.TWELVE_LABS_INDEX_ID!,
       queryText: query,
