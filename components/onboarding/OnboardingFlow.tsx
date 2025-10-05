@@ -104,7 +104,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   }, [userId])
 
   const handleRoleSelect = (role: UserRole) => {
-    setFormData({ ...formData, role })
+    setFormData(prev => ({ ...prev, role }))
   }
 
   const togglePrimaryGoal = (goal: PrimaryGoal) => {
@@ -238,8 +238,8 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   const handleNext = async () => {
     if (step < 8) {
       const nextStep = step + 1
-      await saveProgress(nextStep) // Save progress first
-      setStep(nextStep) // Then move to next step
+      setStep(nextStep) // Move to next step immediately
+      saveProgress(nextStep) // Save progress in background (don't await)
     }
   }
 
@@ -383,7 +383,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
               <div className="p-8 md:p-12 backdrop-blur-xl">
                 <div className="text-center mb-8">
                   <h2 className="text-3xl font-bold mb-3">
-                    What's your role?
+                     What&apos;s your role?
                   </h2>
                   <p className="text-lg text-muted-foreground max-w-md mx-auto">
                     Help us personalize your dashboard experience
@@ -391,24 +391,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
                   {ROLE_OPTIONS.map((option, index) => (
-                    <motion.button
-                      key={option.value}
-                      type="button"
-                      onClick={() => handleRoleSelect(option.value)}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                      whileHover={{
-                        scale: 1.02,
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`group p-6 text-left rounded-2xl border-2 transition-all duration-300 ${
-                        formData.role === option.value
-                          ? 'border-black dark:border-white bg-black/5 dark:bg-white/5 shadow-apple-lg'
-                          : 'border-border/50 hover:border-black/30 dark:hover:border-white/30 hover:bg-accent/50'
-                      }`}
-                    >
+                     <button
+                       key={option.value}
+                       type="button"
+                       onClick={() => handleRoleSelect(option.value)}
+                        className={`group p-6 text-left rounded-2xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                          formData.role === option.value
+                            ? 'border-primary bg-primary/10 shadow-apple-lg'
+                            : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
+                        }`}
+                     >
                       <div className="flex items-start space-x-4">
                         <div className={`w-3 h-3 rounded-full mt-2 transition-all ${
                           formData.role === option.value ? 'bg-black dark:bg-white' : 'bg-muted-foreground/30'
@@ -419,10 +411,10 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                           </div>
                           <div className="text-sm text-muted-foreground leading-relaxed">
                             {option.description}
-                          </div>
-                        </div>
-                      </div>
-                    </motion.button>
+                           </div>
+                         </div>
+                       </div>
+                     </button>
                   ))}
                 </div>
               </div>
@@ -453,29 +445,21 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                 </div>
                 <div className="grid gap-4">
                   {PRIMARY_GOAL_OPTIONS.map((option, index) => (
-                    <motion.button
-                      key={option.value}
-                      type="button"
-                      onClick={() => togglePrimaryGoal(option.value)}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.4 }}
-                      whileHover={{
-                        scale: 1.01,
-                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
-                      }}
-                      whileTap={{ scale: 0.99 }}
-                      className={`group relative p-6 text-left rounded-2xl border-2 transition-all duration-300 ${
-                        formData.primary_goals.includes(option.value)
-                          ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
-                          : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
-                      } ${
-                        formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)
-                          ? 'opacity-50 cursor-not-allowed'
-                          : ''
-                      }`}
-                      disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
-                    >
+                     <button
+                       key={option.value}
+                       type="button"
+                       onClick={() => togglePrimaryGoal(option.value)}
+                       className={`group relative p-6 text-left rounded-2xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                         formData.primary_goals.includes(option.value)
+                           ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
+                           : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
+                       } ${
+                         formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)
+                           ? 'opacity-50 cursor-not-allowed'
+                           : ''
+                       }`}
+                       disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
+                     >
                       <div className="flex items-start space-x-4">
                         <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
                           formData.primary_goals.includes(option.value)
@@ -504,7 +488,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                           </div>
                         )}
                       </div>
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
                 <div className="mt-6 text-center">
@@ -542,34 +526,49 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   {formData.decision_factors.map((factor, index) => {
                     const option = DECISION_FACTOR_OPTIONS.find(o => o.value === factor)
                     return (
-                      <div key={factor} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+                      <div key={factor} className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg relative z-10">
                         <span className="text-muted-foreground">⋮⋮</span>
                         <span className="font-medium">{index + 1}.</span>
                         <span className="flex-1">{option?.label}</span>
                         <div className="flex gap-1">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => moveDecisionFactor(factor, 'up')}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              moveDecisionFactor(factor, 'up')
+                            }}
                             disabled={index === 0}
+                            style={{ pointerEvents: 'auto' }}
+                            className="px-2 py-1 text-sm rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
                           >
                             ↑
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => moveDecisionFactor(factor, 'down')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              moveDecisionFactor(factor, 'down')
+                            }}
                             disabled={index === formData.decision_factors.length - 1}
+                            style={{ pointerEvents: 'auto' }}
+                            className="px-2 py-1 text-sm rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed relative z-10"
                           >
                             ↓
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => removeDecisionFactor(factor)}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              removeDecisionFactor(factor)
+                            }}
+                            style={{ pointerEvents: 'auto' }}
+                            className="px-2 py-1 text-sm rounded hover:bg-accent relative z-10"
                           >
                             ×
-                          </Button>
+                          </button>
                         </div>
                       </div>
                     )
@@ -577,23 +576,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                 </div>
 
                 {/* Available factors */}
-                <div className="space-y-2">
+                <div className="space-y-2 relative z-10">
                   <h4 className="font-semibold text-sm">Available options:</h4>
                   {DECISION_FACTOR_OPTIONS.filter(option => !formData.decision_factors.includes(option.value)).map((option) => (
-                    <motion.button
-                      key={option.value}
-                      type="button"
-                      onClick={() => addDecisionFactor(option.value)}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full p-3 text-left rounded-lg border-2 border-border hover:border-primary/20 transition-all"
-                      disabled={formData.decision_factors.length >= 5}
-                    >
-                      <div className="font-semibold">{option.label}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {option.description}
-                      </div>
-                    </motion.button>
+                     <button
+                       key={option.value}
+                       type="button"
+                       onClick={(e) => {
+                         e.preventDefault()
+                         e.stopPropagation()
+                         console.log('Decision factor clicked:', option.value)
+                         addDecisionFactor(option.value)
+                       }}
+                       style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                       className="w-full p-4 text-left rounded-lg border-2 border-border hover:border-primary/40 hover:bg-primary/5 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative z-10"
+                       disabled={formData.decision_factors.length >= 5}
+                     >
+                       <div className="w-5 h-5 rounded border-2 border-muted-foreground/40 bg-background flex-shrink-0"></div>
+                       <div className="flex-1">
+                         <div className="font-semibold">{option.label}</div>
+                         <div className="text-sm text-muted-foreground">
+                           {option.description}
+                         </div>
+                       </div>
+                     </button>
                   ))}
                 </div>
               </CardContent>
@@ -621,23 +627,39 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 {TECHNICAL_COMFORT_OPTIONS.map((option) => (
-                  <motion.button
-                    key={option.value}
-                    type="button"
-                    onClick={() => handleTechnicalComfortSelect(option.value)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                   <button
+                     key={option.value}
+                     type="button"
+                     onClick={(e) => {
+                       e.preventDefault()
+                       e.stopPropagation()
+                       handleTechnicalComfortSelect(option.value)
+                     }}
+                     style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:scale-95 flex items-start gap-3 relative z-10 ${
+                       formData.technical_comfort === option.value
+                         ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                         : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                     }`}
+                   >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
                       formData.technical_comfort === option.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/20'
-                    }`}
-                  >
-                    <div className="font-semibold">{option.label}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {option.description}
+                        ? 'border-primary bg-primary'
+                        : 'border-muted-foreground/40 bg-background'
+                    }`}>
+                      {formData.technical_comfort === option.value && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-primary-foreground"></div>
+                      )}
                     </div>
-                  </motion.button>
+                    <div className="flex-1">
+                      <div className={`font-semibold transition-colors ${
+                        formData.technical_comfort === option.value ? 'text-primary' : ''
+                      }`}>{option.label}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {option.description}
+                      </div>
+                    </div>
+                   </button>
                 ))}
               </CardContent>
             </Card>
@@ -667,13 +689,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">What type of campaigns do you typically run?</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {CAMPAIGN_TYPE_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => toggleCampaignType(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          toggleCampaignType(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 z-10 ${
                           formData.campaign_types.includes(option.value)
                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/40'
@@ -693,7 +718,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         <span className={`font-medium transition-colors ${
                           formData.campaign_types.includes(option.value) ? 'text-primary' : ''
                         }`}>{option.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -702,13 +727,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">What platforms do you advertise on?</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {PLATFORM_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => togglePlatform(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          togglePlatform(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 z-10 ${
                           formData.platforms.includes(option.value)
                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/40'
@@ -728,7 +756,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         <span className={`font-medium transition-colors ${
                           formData.platforms.includes(option.value) ? 'text-primary' : ''
                         }`}>{option.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -760,13 +788,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">When do you need insights?</h4>
                   <div className="space-y-3">
                     {INSIGHT_TIMING_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => toggleInsightTiming(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          toggleInsightTiming(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 relative z-10 ${
                           formData.insight_timing.includes(option.value)
                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/40'
@@ -786,7 +817,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         <span className={`font-medium transition-colors ${
                           formData.insight_timing.includes(option.value) ? 'text-primary' : ''
                         }`}>{option.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -795,20 +826,34 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">How quickly do you need results?</h4>
                   <div className="space-y-3">
                     {RESULT_SPEED_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => handleResultSpeedSelect(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                          formData.result_speed === option.value
-                            ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
-                            : 'border-border hover:border-black/30 dark:hover:border-white/30'
-                        }`}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          handleResultSpeedSelect(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                         className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:scale-95 flex items-center gap-3 relative z-10 ${
+                           formData.result_speed === option.value
+                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                             : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                         }`}
                       >
-                        {option.label}
-                      </motion.button>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.result_speed === option.value
+                            ? 'border-primary bg-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.result_speed === option.value && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary-foreground"></div>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.result_speed === option.value ? 'text-primary' : ''
+                        }`}>{option.label}</span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -840,13 +885,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">Who else will use these insights?</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {TEAM_MEMBER_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => toggleTeamMember(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          toggleTeamMember(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 z-10 ${
                           formData.team_members.includes(option.value)
                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/40'
@@ -866,7 +914,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         <span className={`font-medium transition-colors ${
                           formData.team_members.includes(option.value) ? 'text-primary' : ''
                         }`}>{option.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -875,13 +923,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   <h4 className="font-semibold mb-3">What format do you need for sharing?</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {SHARING_FORMAT_OPTIONS.map((option) => (
-                      <motion.button
+                      <button
                         key={option.value}
                         type="button"
-                        onClick={() => toggleSharingFormat(option.value)}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                        onClick={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          toggleSharingFormat(option.value)
+                        }}
+                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 z-10 ${
                           formData.sharing_formats.includes(option.value)
                             ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                             : 'border-border hover:border-primary/40'
@@ -901,7 +952,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                         <span className={`font-medium transition-colors ${
                           formData.sharing_formats.includes(option.value) ? 'text-primary' : ''
                         }`}>{option.label}</span>
-                      </motion.button>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -930,13 +981,16 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 {PAIN_POINT_OPTIONS.map((option) => (
-                  <motion.button
+                  <button
                     key={option.value}
                     type="button"
-                    onClick={() => togglePainPoint(option.value)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
+                     onClick={(e) => {
+                       e.preventDefault()
+                       e.stopPropagation()
+                       togglePainPoint(option.value)
+                     }}
+                     style={{ pointerEvents: 'auto', cursor: 'pointer' }}
+                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 active:scale-95 flex items-center gap-3 relative z-10 ${
                       formData.pain_points.includes(option.value)
                         ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
                         : 'border-border hover:border-primary/40'
@@ -956,7 +1010,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     <div className={`font-semibold transition-colors ${
                       formData.pain_points.includes(option.value) ? 'text-primary' : ''
                     }`}>{option.label}</div>
-                  </motion.button>
+                  </button>
                 ))}
               </CardContent>
             </Card>
@@ -965,7 +1019,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
       </AnimatePresence>
 
       {/* Navigation */}
-      <div className="mt-12 flex justify-between items-center">
+      <div className="mt-12 flex justify-between items-center relative z-50">
         <Button
           type="button"
           variant="ghost"
@@ -991,8 +1045,9 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
             <button
               type="button"
               onClick={handleNext}
-              disabled={!getStepValidation(step) || isSaving}
-              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={!getStepValidation(step)}
+              style={{ pointerEvents: 'auto' }}
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed relative z-50"
             >
               Next
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

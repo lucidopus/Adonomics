@@ -23,10 +23,14 @@ export async function GET(request: NextRequest) {
     })
 
     if (!preferences) {
-      return NextResponse.json(
-        { error: 'User preferences not found' },
-        { status: 404 }
-      )
+      // Return empty preferences for new users
+      const emptyPreferences = UserPreferencesModel.createEmptyPreferences(new ObjectId(userId))
+      const responseData = {
+        ...emptyPreferences,
+        _id: new ObjectId().toString(),
+        user_id: userId,
+      }
+    return NextResponse.json({ preferences: responseData })
     }
 
     // Convert ObjectId to string for JSON response
@@ -61,18 +65,6 @@ export async function POST(request: NextRequest) {
     const client = await clientPromise
     const db = client.db()
 
-    // Find existing preferences
-    const existingPreferences = await db.collection(UserPreferencesModel.collectionName).findOne({
-      user_id: new ObjectId(user_id)
-    })
-
-    if (!existingPreferences) {
-      return NextResponse.json(
-        { error: 'User preferences not found' },
-        { status: 404 }
-      )
-    }
-
     // Prepare update data
     const updateData: Partial<UserPreferences> = {
       updated_at: new Date(),
@@ -84,13 +76,20 @@ export async function POST(request: NextRequest) {
       updateData.current_step = current_step
     }
 
-    // Update preferences
+    // Update preferences with upsert (create if doesn't exist)
     const result = await db.collection(UserPreferencesModel.collectionName).updateOne(
       { user_id: new ObjectId(user_id) },
-      { $set: updateData }
+      {
+        $set: updateData,
+        $setOnInsert: {
+          user_id: new ObjectId(user_id),
+          created_at: new Date(),
+        }
+      },
+      { upsert: true }
     )
 
-    if (result.matchedCount === 0) {
+    if (result.matchedCount === 0 && result.upsertedCount === 0) {
       return NextResponse.json(
         { error: 'Failed to update preferences' },
         { status: 500 }
