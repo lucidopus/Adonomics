@@ -12,12 +12,14 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "bcryptjs": "^3.0.2",
+    "dotenv": "^17.2.3",
     "framer-motion": "^11.0.3",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.20.0",
     "next": "15.5.4",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "twelvelabs-js": "^1.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
