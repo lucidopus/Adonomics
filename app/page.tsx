@@ -26,13 +26,13 @@ const scaleIn = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+    <div className="min-h-screen bg-background">
       {/* Navigation */}
       <motion.nav
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="border-b bg-background/80 dark:bg-gray-950/80 backdrop-blur-md sticky top-0 z-50" style={{ borderColor: 'oklch(from var(--border) l c h / 0.4)' }}
+        className="border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-50"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16 items-center">
@@ -41,8 +41,8 @@ export default function HomePage() {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400 }}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-purple-600 rounded-lg"></div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              <div className="w-8 h-8 bg-black dark:bg-white rounded-lg"></div>
+              <h1 className="text-xl font-bold">
                 Adonomics
               </h1>
             </motion.div>
@@ -68,9 +68,9 @@ export default function HomePage() {
         >
           <motion.div
             variants={fadeInUp}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-primary/5 border border-primary/20 mb-8"
+            className="inline-flex items-center px-4 py-2 rounded-full bg-black/5 dark:bg-white/5 border border-black/20 dark:border-white/20 mb-8"
           >
-            <span className="text-sm font-medium text-primary">
+            <span className="text-sm font-medium">
               🎯 AI-Powered Creative Analytics
             </span>
           </motion.div>
@@ -80,7 +80,7 @@ export default function HomePage() {
             className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"
           >
             Understand{' '}
-            <span className="bg-gradient-to-r from-primary via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <span className="underline decoration-4 underline-offset-8">
               Why
             </span>
             <br />
@@ -160,16 +160,10 @@ export default function HomePage() {
               key={index}
               variants={scaleIn}
               whileHover={{ y: -10, transition: { duration: 0.2 } }}
-              className="bg-card text-card-foreground rounded-2xl p-8 border border-border shadow-sm hover:shadow-xl transition-shadow"
+              className="bg-card text-card-foreground rounded-2xl p-8 border border-border shadow-apple-lg hover:shadow-apple-xl transition-shadow"
             >
               <motion.div
-                className={`w-12 h-12 rounded-lg flex items-center justify-center mb-4 ${
-                  feature.color === 'blue'
-                    ? 'bg-blue-100 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400'
-                    : feature.color === 'purple'
-                    ? 'bg-purple-100 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400'
-                    : 'bg-pink-100 dark:bg-pink-950/30 text-pink-600 dark:text-pink-400'
-                }`}
+                className="w-12 h-12 rounded-lg flex items-center justify-center mb-4 bg-black dark:bg-white text-white dark:text-black"
                 whileHover={{ rotate: 360 }}
                 transition={{ duration: 0.6 }}
               >
@@ -187,7 +181,7 @@ export default function HomePage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="mt-32 text-center max-w-3xl mx-auto bg-gradient-to-r from-primary to-purple-600 rounded-3xl p-12 text-primary-foreground"
+          className="mt-32 text-center max-w-3xl mx-auto bg-black dark:bg-white rounded-3xl p-12 text-white dark:text-black"
         >
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
@@ -203,7 +197,7 @@ export default function HomePage() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.3 }}
-            className="text-primary-foreground/80 mb-8 text-lg"
+            className="text-white/80 dark:text-black/80 mb-8 text-lg"
           >
             Join marketing teams using AI to turn creative decisions into data-backed strategies.
           </motion.p>
@@ -215,7 +209,7 @@ export default function HomePage() {
           >
             <Link href="/signup">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button size="lg" variant="secondary" className="bg-background text-foreground hover:bg-muted">
+                <Button size="lg" className="bg-white dark:bg-black text-black dark:text-white hover:opacity-90">
                   Get Started Free
                 </Button>
               </motion.div>

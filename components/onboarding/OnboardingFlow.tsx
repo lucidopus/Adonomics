@@ -238,8 +238,8 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   const handleNext = async () => {
     if (step < 8) {
       const nextStep = step + 1
-      setStep(nextStep)
-      await saveProgress(nextStep)
+      await saveProgress(nextStep) // Save progress first
+      setStep(nextStep) // Then move to next step
     }
   }
 
@@ -284,16 +284,19 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
 
   const slideVariants = {
     enter: (direction: number) => ({
-      x: direction > 0 ? 50 : -50,
-      opacity: 0
+      x: direction > 0 ? 30 : -30,
+      opacity: 0,
+      scale: 0.98
     }),
     center: {
       x: 0,
-      opacity: 1
+      opacity: 1,
+      scale: 1
     },
     exit: (direction: number) => ({
-      x: direction < 0 ? 50 : -50,
-      opacity: 0
+      x: direction < 0 ? 30 : -30,
+      opacity: 0,
+      scale: 0.98
     })
   }
 
@@ -314,31 +317,54 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
   if (isLoading) {
     return (
       <div className="w-full max-w-4xl mx-auto flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading your progress...</p>
+        <div className="text-center animate-fade-in">
+          <div className="relative">
+            <div className="w-12 h-12 border-2 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 w-12 h-12 border-2 border-transparent border-t-primary/40 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+          </div>
+          <p className="mt-6 text-muted-foreground text-lg font-medium">Loading your progress...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Progress bar */}
-      <div className="mb-8">
-        <div className="flex justify-between mb-2">
+    <div className="w-full max-w-4xl mx-auto animate-fade-in">
+      {/* Progress indicator */}
+      <div className="mb-12">
+        <div className="flex items-center justify-center space-x-2 mb-6">
           {Array.from({ length: 8 }, (_, i) => i + 1).map((s) => (
-            <div
-              key={s}
-              className={`flex-1 h-2 rounded-full mx-1 transition-colors ${
-                s <= step ? 'bg-primary' : 'bg-muted'
-              }`}
-            />
+            <div key={s} className="flex items-center">
+              <div
+                className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                  s < step
+                    ? 'bg-primary ring-2 ring-primary/30 scale-110'
+                    : s === step
+                    ? 'bg-primary ring-2 ring-primary/50 animate-pulse scale-125'
+                    : 'bg-muted-foreground/30 dark:bg-muted-foreground/20'
+                }`}
+              />
+              {s < 8 && (
+                <div
+                  className={`w-8 h-0.5 mx-1 transition-colors duration-500 ${
+                    s < step ? 'bg-primary' : 'bg-muted-foreground/30 dark:bg-muted-foreground/20'
+                  }`}
+                />
+              )}
+            </div>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground text-center">
-          Step {step} of 8
-        </p>
+        <div className="text-center">
+          <p className="text-sm font-medium text-foreground">
+            Step {step} of 8
+          </p>
+          <div className="mt-2 h-1.5 bg-muted-foreground/20 dark:bg-muted-foreground/10 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-700 ease-out rounded-full"
+              style={{ width: `${(step / 8) * 100}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       <AnimatePresence mode="wait" custom={step}>
@@ -351,36 +377,56 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Card>
-              <CardHeader>
-                <CardTitle>What best describes your role?</CardTitle>
-                <CardDescription>
-                  Help us personalize your dashboard experience
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {ROLE_OPTIONS.map((option) => (
-                  <motion.button
-                    key={option.value}
-                    onClick={() => handleRoleSelect(option.value)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                      formData.role === option.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/20'
-                    }`}
-                  >
-                    <div className="font-semibold">{option.label}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {option.description}
-                    </div>
-                  </motion.button>
-                ))}
-              </CardContent>
-            </Card>
+            <div className="glass shadow-apple-lg rounded-3xl overflow-hidden border border-border">
+              <div className="p-8 md:p-12 backdrop-blur-xl">
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-bold mb-3">
+                    What's your role?
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    Help us personalize your dashboard experience
+                  </p>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {ROLE_OPTIONS.map((option, index) => (
+                    <motion.button
+                      key={option.value}
+                      type="button"
+                      onClick={() => handleRoleSelect(option.value)}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.4 }}
+                      whileHover={{
+                        scale: 1.02,
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`group p-6 text-left rounded-2xl border-2 transition-all duration-300 ${
+                        formData.role === option.value
+                          ? 'border-black dark:border-white bg-black/5 dark:bg-white/5 shadow-apple-lg'
+                          : 'border-border/50 hover:border-black/30 dark:hover:border-white/30 hover:bg-accent/50'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`w-3 h-3 rounded-full mt-2 transition-all ${
+                          formData.role === option.value ? 'bg-black dark:bg-white' : 'bg-muted-foreground/30'
+                        }`} />
+                        <div className="flex-1">
+                          <div className="font-semibold text-lg mb-1">
+                            {option.label}
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            {option.description}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -393,37 +439,81 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
             initial="enter"
             animate="center"
             exit="exit"
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           >
-            <Card>
-              <CardHeader>
-                <CardTitle>Primary Goals</CardTitle>
-                <CardDescription>
-                  What do you want to achieve with video ad analytics? (Select up to 3)
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {PRIMARY_GOAL_OPTIONS.map((option) => (
-                  <motion.button
-                    key={option.value}
-                    onClick={() => togglePrimaryGoal(option.value)}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                      formData.primary_goals.includes(option.value)
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/20'
-                    } ${formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value) ? 'opacity-50' : ''}`}
-                    disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
-                  >
-                    <div className="font-semibold">{option.label}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {option.description}
-                    </div>
-                  </motion.button>
-                ))}
-              </CardContent>
-            </Card>
+            <div className="glass shadow-apple-lg rounded-3xl overflow-hidden border border-border">
+              <div className="p-8 md:p-12 backdrop-blur-xl">
+                <div className="text-center mb-8">
+                  <h2 className="text-3xl font-bold mb-3">
+                    Primary Goals
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-md mx-auto">
+                    What do you want to achieve with video ad analytics? (Select up to 3)
+                  </p>
+                </div>
+                <div className="grid gap-4">
+                  {PRIMARY_GOAL_OPTIONS.map((option, index) => (
+                    <motion.button
+                      key={option.value}
+                      type="button"
+                      onClick={() => togglePrimaryGoal(option.value)}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.4 }}
+                      whileHover={{
+                        scale: 1.01,
+                        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
+                      }}
+                      whileTap={{ scale: 0.99 }}
+                      className={`group relative p-6 text-left rounded-2xl border-2 transition-all duration-300 ${
+                        formData.primary_goals.includes(option.value)
+                          ? 'border-primary bg-primary/10 shadow-lg ring-2 ring-primary/20'
+                          : 'border-border/50 hover:border-primary/40 hover:bg-accent/50'
+                      } ${
+                        formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)
+                          ? 'opacity-50 cursor-not-allowed'
+                          : ''
+                      }`}
+                      disabled={formData.primary_goals.length >= 3 && !formData.primary_goals.includes(option.value)}
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                          formData.primary_goals.includes(option.value)
+                            ? 'bg-primary border-primary scale-110'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.primary_goals.includes(option.value) && (
+                            <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className={`font-semibold text-lg mb-1 transition-colors ${
+                            formData.primary_goals.includes(option.value) ? 'text-primary' : ''
+                          }`}>
+                            {option.label}
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            {option.description}
+                          </div>
+                        </div>
+                        {formData.primary_goals.includes(option.value) && (
+                          <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-primary text-primary-foreground font-bold text-lg flex items-center justify-center shadow-lg">
+                            {formData.primary_goals.indexOf(option.value) + 1}
+                          </div>
+                        )}
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Selected: {formData.primary_goals.length} of 3
+                  </p>
+                </div>
+              </div>
+            </div>
           </motion.div>
         )}
 
@@ -492,6 +582,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                   {DECISION_FACTOR_OPTIONS.filter(option => !formData.decision_factors.includes(option.value)).map((option) => (
                     <motion.button
                       key={option.value}
+                      type="button"
                       onClick={() => addDecisionFactor(option.value)}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -532,6 +623,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                 {TECHNICAL_COMFORT_OPTIONS.map((option) => (
                   <motion.button
                     key={option.value}
+                    type="button"
                     onClick={() => handleTechnicalComfortSelect(option.value)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -577,16 +669,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {CAMPAIGN_TYPE_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => toggleCampaignType(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-3 text-left rounded-lg border-2 transition-all ${
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                           formData.campaign_types.includes(option.value)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
                         }`}
                       >
-                        {option.label}
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.campaign_types.includes(option.value)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.campaign_types.includes(option.value) && (
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.campaign_types.includes(option.value) ? 'text-primary' : ''
+                        }`}>{option.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -598,16 +704,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {PLATFORM_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => togglePlatform(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-3 text-left rounded-lg border-2 transition-all ${
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                           formData.platforms.includes(option.value)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
                         }`}
                       >
-                        {option.label}
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.platforms.includes(option.value)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.platforms.includes(option.value) && (
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.platforms.includes(option.value) ? 'text-primary' : ''
+                        }`}>{option.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -642,16 +762,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {INSIGHT_TIMING_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => toggleInsightTiming(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
+                        className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                           formData.insight_timing.includes(option.value)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
                         }`}
                       >
-                        {option.label}
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.insight_timing.includes(option.value)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.insight_timing.includes(option.value) && (
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.insight_timing.includes(option.value) ? 'text-primary' : ''
+                        }`}>{option.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -663,13 +797,14 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {RESULT_SPEED_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => handleResultSpeedSelect(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
                           formData.result_speed === option.value
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-black dark:border-white bg-black/5 dark:bg-white/5'
+                            : 'border-border hover:border-black/30 dark:hover:border-white/30'
                         }`}
                       >
                         {option.label}
@@ -707,16 +842,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {TEAM_MEMBER_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => toggleTeamMember(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-3 text-left rounded-lg border-2 transition-all ${
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                           formData.team_members.includes(option.value)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
                         }`}
                       >
-                        {option.label}
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.team_members.includes(option.value)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.team_members.includes(option.value) && (
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.team_members.includes(option.value) ? 'text-primary' : ''
+                        }`}>{option.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -728,16 +877,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                     {SHARING_FORMAT_OPTIONS.map((option) => (
                       <motion.button
                         key={option.value}
+                        type="button"
                         onClick={() => toggleSharingFormat(option.value)}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className={`p-3 text-left rounded-lg border-2 transition-all ${
+                        className={`relative p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                           formData.sharing_formats.includes(option.value)
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/20'
+                            ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                            : 'border-border hover:border-primary/40'
                         }`}
                       >
-                        {option.label}
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                          formData.sharing_formats.includes(option.value)
+                            ? 'bg-primary border-primary'
+                            : 'border-muted-foreground/40 bg-background'
+                        }`}>
+                          {formData.sharing_formats.includes(option.value) && (
+                            <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </div>
+                        <span className={`font-medium transition-colors ${
+                          formData.sharing_formats.includes(option.value) ? 'text-primary' : ''
+                        }`}>{option.label}</span>
                       </motion.button>
                     ))}
                   </div>
@@ -769,16 +932,30 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                 {PAIN_POINT_OPTIONS.map((option) => (
                   <motion.button
                     key={option.value}
+                    type="button"
                     onClick={() => togglePainPoint(option.value)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 flex items-center gap-3 ${
                       formData.pain_points.includes(option.value)
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-primary/20'
+                        ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
+                        : 'border-border hover:border-primary/40'
                     }`}
                   >
-                    <div className="font-semibold">{option.label}</div>
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                      formData.pain_points.includes(option.value)
+                        ? 'bg-primary border-primary'
+                        : 'border-muted-foreground/40 bg-background'
+                    }`}>
+                      {formData.pain_points.includes(option.value) && (
+                        <svg className="w-3.5 h-3.5 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className={`font-semibold transition-colors ${
+                      formData.pain_points.includes(option.value) ? 'text-primary' : ''
+                    }`}>{option.label}</div>
                   </motion.button>
                 ))}
               </CardContent>
@@ -787,32 +964,67 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
         )}
       </AnimatePresence>
 
-      {/* Navigation buttons */}
-      <div className="mt-8 flex justify-between">
+      {/* Navigation */}
+      <div className="mt-12 flex justify-between items-center">
         <Button
-          variant="outline"
+          type="button"
+          variant="ghost"
           onClick={handleBack}
           disabled={step === 1}
+          className="px-6 py-3 rounded-2xl font-medium hover:bg-accent transition-all duration-300 ease-out"
         >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           Back
         </Button>
 
-        {step < 8 ? (
-          <Button
-            onClick={handleNext}
-            disabled={!getStepValidation(step)}
-          >
-            Next
-          </Button>
-        ) : (
-          <Button
-            onClick={handleSubmit}
-            isLoading={isLoading}
-            disabled={!getStepValidation(step)}
-          >
-            Complete Setup
-          </Button>
-        )}
+        <div className="flex items-center space-x-4">
+          {isSaving && (
+            <div className="flex items-center text-sm text-muted-foreground animate-fade-in">
+              <div className="w-4 h-4 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin mr-2"></div>
+              Saving...
+            </div>
+          )}
+
+          {step < 8 ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!getStepValidation(step) || isSaving}
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!getStepValidation(step) || isLoading}
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Completing...
+                </>
+              ) : (
+                <>
+                  Complete Setup
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
