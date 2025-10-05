@@ -270,15 +270,15 @@ export default function LiveAdsDashboard() {
             </h3>
             <p className="text-sm text-muted-foreground mt-1">Monitor real-time performance of your active campaigns</p>
             <div className="flex items-center gap-4 mt-3">
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 rounded-full">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="text-xs font-medium text-green-700 dark:text-green-400">13 Active Campaigns</span>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full shadow-md">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse shadow-sm"></div>
+                <span className="text-xs font-semibold text-white">13 Active Campaigns</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                <svg className="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full shadow-md">
+                <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                 </svg>
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-400">Avg ROAS: {avgRoas.toFixed(2)}x</span>
+                <span className="text-xs font-semibold text-white">Avg ROAS: {avgRoas.toFixed(2)}x</span>
               </div>
             </div>
           </div>
