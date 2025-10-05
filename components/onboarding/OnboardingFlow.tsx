@@ -589,7 +589,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                          addDecisionFactor(option.value)
                        }}
                        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                       className="w-full p-4 text-left rounded-lg border-2 border-border hover:border-primary/40 hover:bg-primary/5 active:scale-95 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative z-10"
+                       className="w-full p-4 text-left rounded-lg border-2 border-border hover:border-primary/40 hover:bg-primary/5 hover:shadow-md active:opacity-70 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 relative z-10"
                        disabled={formData.decision_factors.length >= 5}
                      >
                        <div className="w-5 h-5 rounded border-2 border-muted-foreground/40 bg-background flex-shrink-0"></div>
@@ -636,10 +636,10 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                        handleTechnicalComfortSelect(option.value)
                      }}
                      style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:scale-95 flex items-start gap-3 relative z-10 ${
+                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:opacity-70 flex items-start gap-3 relative z-10 ${
                        formData.technical_comfort === option.value
                          ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
-                         : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                         : 'border-border hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'
                      }`}
                    >
                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-all ${
@@ -835,10 +835,10 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                           handleResultSpeedSelect(option.value)
                         }}
                         style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                         className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:scale-95 flex items-center gap-3 relative z-10 ${
+                         className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:opacity-70 flex items-center gap-3 relative z-10 ${
                            formData.result_speed === option.value
                              ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
-                             : 'border-border hover:border-primary/40 hover:bg-primary/5'
+                             : 'border-border hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'
                          }`}
                       >
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
@@ -990,10 +990,10 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
                        togglePainPoint(option.value)
                      }}
                      style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-300 active:scale-95 flex items-center gap-3 relative z-10 ${
+                     className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 active:opacity-70 flex items-center gap-3 relative z-10 ${
                       formData.pain_points.includes(option.value)
                         ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/20'
-                        : 'border-border hover:border-primary/40'
+                        : 'border-border hover:border-primary/40 hover:shadow-md'
                     }`}
                   >
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-all ${
@@ -1047,7 +1047,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
               onClick={handleNext}
               disabled={!getStepValidation(step)}
               style={{ pointerEvents: 'auto' }}
-              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed relative z-50"
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:opacity-80 shadow-apple-lg transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed relative z-50"
             >
               Next
               <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1059,7 +1059,7 @@ export default function OnboardingFlow({ userId }: OnboardingFlowProps) {
               type="button"
               onClick={handleSubmit}
               disabled={!getStepValidation(step) || isLoading}
-              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:scale-95 shadow-apple-lg transition-all duration-300 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 active:opacity-80 shadow-apple-lg transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
