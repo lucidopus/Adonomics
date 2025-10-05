@@ -142,20 +142,21 @@ export async function POST(request: NextRequest) {
          analysis: analysisResults
        })
 
-    } catch (analysisError: any) {
-      console.error('❌ Analysis error:', analysisError)
+    } catch (analysisError: unknown) {
+      const error = analysisError as Error
+      console.error('❌ Analysis error:', error)
       console.error('🔍 Error details:', {
-        message: analysisError.message,
-        stack: analysisError.stack,
-        name: analysisError.name
+        message: error.message,
+        stack: error.stack,
+        name: error.name
       })
 
       let errorMessage = 'Analysis failed'
       let statusCode = 500
 
       // Handle specific video indexing error
-      if (analysisError.message?.includes('still being processed') ||
-          analysisError.message?.includes('still being indexed')) {
+      if (error.message?.includes('still being processed') ||
+          error.message?.includes('still being indexed')) {
         errorMessage = 'Video is still being indexed by Twelve Labs. Please wait 5-15 minutes before analyzing.'
         statusCode = 202 // Accepted but not processed
       }

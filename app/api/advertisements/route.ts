@@ -67,14 +67,14 @@ export async function POST(request: NextRequest) {
     try {
       if (videoFile) {
         // Upload file - pass the File object directly
-        task = await (client as any).tasks.create({
+        task = await (client as unknown as { tasks: { create: (params: { indexId: string; videoFile: File; enableVideoStream: boolean }) => Promise<{ id: string; videoId: string }> } }).tasks.create({
           indexId,
           videoFile,
           enableVideoStream: true
         })
       } else if (videoUrl) {
         // Upload URL
-        task = await (client as any).tasks.create({
+        task = await (client as unknown as { tasks: { create: (params: { indexId: string; videoUrl: string; enableVideoStream: boolean }) => Promise<{ id: string; videoId: string }> } }).tasks.create({
           indexId,
           videoUrl,
           enableVideoStream: true

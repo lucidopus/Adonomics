@@ -50,8 +50,9 @@ export default function VideoAnalysis() {
       }
 
       setResults(prev => ({ ...prev, [analysisType]: data.data }))
-    } catch (err: any) {
-      setErrors(prev => ({ ...prev, [analysisType]: err.message || 'An error occurred during analysis' }))
+    } catch (err: unknown) {
+      const error = err as Error
+      setErrors(prev => ({ ...prev, [analysisType]: error.message || 'An error occurred during analysis' }))
     } finally {
       setIsLoading(prev => ({ ...prev, [analysisType]: false }))
     }
@@ -182,7 +183,7 @@ export default function VideoAnalysis() {
               rows={4}
             />
             <p className="text-xs text-muted-foreground mt-2">
-              Example: "Analyze this video for advertising potential. What emotions does it evoke and who is the target audience?"
+              Example: &ldquo;Analyze this video for advertising potential. What emotions does it evoke and who is the target audience?&rdquo;
             </p>
           </div>
 

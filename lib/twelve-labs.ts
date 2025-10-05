@@ -496,7 +496,7 @@ export async function validateTwelveLabsConfig(): Promise<boolean> {
     // Try to get index info to validate configuration
     try {
       await client.indexes.retrieve(process.env.TWELVE_LABS_INDEX_ID)
-    } catch (indexError: any) {
+    } catch {
       // If index retrieval fails, provide helpful error message
       console.log('Index retrieval failed. The index ID might be incorrect.')
       throw new Error(`Index ID '${process.env.TWELVE_LABS_INDEX_ID}' is invalid. Please check your TwelveLabs dashboard for the correct index ID (should be a UUID format, not a name).`)

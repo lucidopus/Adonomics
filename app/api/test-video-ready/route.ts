@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       videoId
     })
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error checking video readiness:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to check video readiness' },

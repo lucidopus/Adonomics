@@ -6,11 +6,7 @@ interface SearchVideosRequest {
   indexId?: string
 }
 
-interface SearchVideosResponse {
-  success: boolean
-  data?: any[]
-  error?: string
-}
+// Response interface not used - removed to fix unused variable warning
 
 /**
  * API endpoint for searching videos using TwelveLabs
@@ -36,25 +32,26 @@ export async function POST(request: NextRequest) {
       data: result.data
     })
 
-  } catch (error: any) {
-    console.error('Error searching videos:', error)
+  } catch (error: unknown) {
+    const err = error as Error
+    console.error('Error searching videos:', err)
 
     // Handle specific TwelveLabs errors
-    if (error.message?.includes('API key') || error.message?.includes('unauthorized')) {
+    if (err.message?.includes('API key') || err.message?.includes('unauthorized')) {
       return NextResponse.json(
         { success: false, error: 'TwelveLabs API key is invalid' },
         { status: 401 }
       )
     }
 
-    if (error.message?.includes('index') && error.message?.includes('not found')) {
+    if (err.message?.includes('index') && err.message?.includes('not found')) {
       return NextResponse.json(
         { success: false, error: 'TwelveLabs index not found' },
         { status: 404 }
       )
     }
 
-    if (error.message?.includes('quota') || error.message?.includes('limit') || error.message?.includes('rate')) {
+    if (err.message?.includes('quota') || err.message?.includes('limit') || err.message?.includes('rate')) {
       return NextResponse.json(
         { success: false, error: 'API quota exceeded or rate limited' },
         { status: 429 }

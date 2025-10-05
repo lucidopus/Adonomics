@@ -8,11 +8,7 @@ interface AnalyzeVideoRequest {
   indexId?: string
 }
 
-interface AnalyzeVideoResponse {
-  success: boolean
-  data?: any
-  error?: string
-}
+// Response interface not used - removed to fix unused variable warning
 
 /**
  * API endpoint for analyzing videos using TwelveLabs
@@ -21,7 +17,7 @@ interface AnalyzeVideoResponse {
 export async function POST(request: NextRequest) {
   try {
     const body: AnalyzeVideoRequest = await request.json()
-    const { videoId, analysisType, prompt, indexId } = body
+    const { videoId, analysisType, prompt } = body
 
     // Validate required parameters
     if (!videoId) {
@@ -51,12 +47,12 @@ export async function POST(request: NextRequest) {
       apiKey: process.env.TWELVE_LABS_API_KEY
     })
 
-    let result: any
+    let result: unknown
 
     switch (analysisType) {
       case 'gist':
         // Generate titles, topics, and hashtags
-        result = await (client as any).gist({
+        result = await (client as unknown as { gist: (params: { videoId: string; types: string[] }) => Promise<unknown> }).gist({
           videoId,
           types: ['title', 'topic', 'hashtag']
         })
@@ -64,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       case 'summary':
         // Generate summary with custom prompt if provided
-        result = await (client as any).summarize({
+        result = await (client as unknown as { summarize: (params: { videoId: string; type: string; prompt: string }) => Promise<unknown> }).summarize({
           videoId,
           type: 'summary',
           prompt: prompt || 'Create a concise summary of this video for advertising analysis.'
@@ -79,7 +75,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-        result = await (client as any).analyze({
+        result = await (client as unknown as { analyze: (params: { videoId: string; prompt: string; temperature: number }) => Promise<unknown> }).analyze({
           videoId,
           prompt,
           temperature: 0.2 // Lower temperature for more consistent results
@@ -98,25 +94,26 @@ export async function POST(request: NextRequest) {
       data: result
     })
 
-  } catch (error: any) {
-    console.error('Error analyzing video:', error)
+  } catch (error: unknown) {
+    const err = error as Error
+    console.error('Error analyzing video:', err)
 
     // Handle specific TwelveLabs errors
-    if (error.message?.includes('API key') || error.message?.includes('unauthorized')) {
+    if (err.message?.includes('API key') || err.message?.includes('unauthorized')) {
       return NextResponse.json(
         { success: false, error: 'TwelveLabs API key is invalid' },
         { status: 401 }
       )
     }
 
-    if (error.message?.includes('video') && error.message?.includes('not found')) {
+    if (err.message?.includes('video') && err.message?.includes('not found')) {
       return NextResponse.json(
         { success: false, error: 'Video not found in the index' },
         { status: 404 }
       )
     }
 
-    if (error.message?.includes('quota') || error.message?.includes('limit') || error.message?.includes('rate')) {
+    if (err.message?.includes('quota') || err.message?.includes('limit') || err.message?.includes('rate')) {
       return NextResponse.json(
         { success: false, error: 'API quota exceeded or rate limited' },
         { status: 429 }

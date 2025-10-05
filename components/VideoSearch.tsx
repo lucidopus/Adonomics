@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import AnalysisModal from './AnalysisModal'
 
 interface VideoResult {
@@ -44,8 +44,9 @@ export default function VideoSearch() {
       }
 
       setResults(data.data || [])
-    } catch (err: any) {
-      setError(err.message || 'An error occurred during search')
+    } catch (err: unknown) {
+      const error = err as Error
+      setError(error.message || 'An error occurred during search')
     } finally {
       setIsLoading(false)
     }
@@ -114,7 +115,7 @@ export default function VideoSearch() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault()
-                  handleSearch(e as any)
+                  handleSearch(e as React.FormEvent)
                 }
               }}
               placeholder="Describe the video content you're looking for..."
@@ -182,7 +183,7 @@ export default function VideoSearch() {
           <div className="mb-6">
             <h4 className="text-lg font-semibold mb-2">Search Results</h4>
             <p className="text-sm text-muted-foreground">
-              Found {results.length} video{results.length !== 1 ? 's' : ''} matching your query. Click "Analyze Video" to get instant insights.
+              Found {results.length} video{results.length !== 1 ? 's' : ''} matching your query. Click &ldquo;Analyze Video&rdquo; to get instant insights.
             </p>
           </div>
 
@@ -209,6 +210,7 @@ export default function VideoSearch() {
                 </div>
                 {video.thumbnail_url && (
                   <div className="aspect-video rounded-lg overflow-hidden mb-3 bg-muted">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={video.thumbnail_url}
                       alt={video.title || 'Video thumbnail'}

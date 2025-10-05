@@ -9,7 +9,7 @@ export interface AnalysisResults {
   video_analysis?: {
     task_id: string
     video_id: string
-    analysis_data: any // Twelve Labs response
+    analysis_data: Record<string, unknown> // Twelve Labs response
     extracted_at: Date
   }
 
@@ -21,13 +21,13 @@ export interface AnalysisResults {
 
   // Step 3: Competitive Intelligence
   competitive_search?: {
-    similar_ads: any[] // Array of similar ad data
+    similar_ads: Record<string, unknown>[] // Array of similar ad data
     searched_at: Date
   }
 
   // Final synthesis
   synthesis?: {
-    report: any // The structured function call output
+    report: Record<string, unknown> // The structured function call output
     generated_at: Date
   }
 }
@@ -152,6 +152,7 @@ export class AdvertisementModel {
   static addAnalysisResults(
     existing: Advertisement,
     step: keyof AnalysisResults,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any
   ): Advertisement {
     const now = new Date()

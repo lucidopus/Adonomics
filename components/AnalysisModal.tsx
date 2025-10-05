@@ -73,8 +73,9 @@ export default function AnalysisModal({ isOpen, onClose, video }: AnalysisModalP
       }
 
       setResults(prev => ({ ...prev, [analysisType]: data.data }))
-    } catch (err: any) {
-      setErrors(prev => ({ ...prev, [analysisType]: err.message || 'An error occurred during analysis' }))
+    } catch (err: unknown) {
+      const error = err as Error
+      setErrors(prev => ({ ...prev, [analysisType]: error.message || 'An error occurred during analysis' }))
     } finally {
       setIsLoading(prev => ({ ...prev, [analysisType]: false }))
     }
@@ -311,6 +312,7 @@ export default function AnalysisModal({ isOpen, onClose, video }: AnalysisModalP
               <div className="flex items-center space-x-4">
                 {video.thumbnail_url && (
                   <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={video.thumbnail_url}
                       alt={video.title || 'Video thumbnail'}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import {
@@ -817,7 +817,7 @@ export default function LiveAdsDashboard() {
                   fill={isDarkMode ? "#ffffff" : "#374151"}
                   fontSize={13}
                   fontWeight="500"
-                  formatter={(value: any) => formatNumber(value as number)}
+                  formatter={(value) => formatNumber(value as number)}
                 />
               </Funnel>
             </FunnelChart>
