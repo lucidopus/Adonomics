@@ -3,11 +3,22 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 
-import Button from '@/components/ui/Button'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { generateUserProfileSummary } from '@/lib/user-profile-summary'
+
+interface User {
+  id: string
+  email?: string
+  name?: string
+}
+
+type ActiveView = 'profile'
 
 export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState<User | null>(null)
+  const [profileSummary, setProfileSummary] = useState<string>('')
+  const [activeView, setActiveView] = useState<ActiveView>('profile')
 
   useEffect(() => {
     async function checkAuth() {
@@ -19,11 +30,12 @@ export default function DashboardPage() {
         return
       }
 
-      const user = JSON.parse(userData)
+      const parsedUser = JSON.parse(userData)
+      setUser(parsedUser)
 
       // Check if user has completed onboarding by fetching from API
       try {
-        const response = await fetch(`/api/preferences?userId=${user.id}`)
+        const response = await fetch(`/api/preferences?userId=${parsedUser.id}`)
         const data = await response.json()
 
         if (!response.ok || !data.preferences?.onboarding_completed) {
@@ -31,6 +43,10 @@ export default function DashboardPage() {
           window.location.href = '/onboarding'
           return
         }
+
+        // Generate profile summary
+        const summary = await generateUserProfileSummary(parsedUser.id)
+        setProfileSummary(summary)
       } catch (error) {
         console.error('Error checking onboarding status:', error)
         // If we can't check, assume they need onboarding
@@ -44,13 +60,13 @@ export default function DashboardPage() {
     checkAuth()
   }, [])
 
-   const handleLogout = async () => {
-     await fetch('/api/auth/logout', { method: 'POST' })
-     // Clear user data and onboarding status from localStorage
-     localStorage.removeItem('user')
-     localStorage.removeItem('onboarding_completed')
-     window.location.href = '/'
-   }
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' })
+    // Clear user data and onboarding status from localStorage
+    localStorage.removeItem('user')
+    localStorage.removeItem('onboarding_completed')
+    window.location.href = '/'
+  }
 
   if (isLoading) {
     return (
@@ -67,124 +83,167 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <div className="relative z-10">
-        {/* Glass morphism header */}
-        <div className="glass backdrop-blur-xl border-b border-border">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <div className="flex justify-between items-center animate-slide-in-top">
-              <div>
-                <h1 className="text-4xl font-bold tracking-tight mb-1">
-                  Welcome to Adonomics
-                </h1>
-                <p className="text-muted-foreground text-lg">Your creative analytics dashboard</p>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col">
+        {/* Brand Header */}
+        <div className="p-6 border-b border-border">
+          <h1 className="text-xl font-bold tracking-tight">Adonomics</h1>
+          <p className="text-xs text-muted-foreground mt-1">Creative Intelligence</p>
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex-1 p-4 space-y-2">
+          <button
+            onClick={() => setActiveView('profile')}
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeView === 'profile'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            Profile
+          </button>
+
+          {/* Placeholder for future navigation items - add more tabs here */}
+          {/* Example for future agents:
+          <button
+            onClick={() => setActiveView('dashboard')}
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+              activeView === 'dashboard'
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+            }`}
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+            </svg>
+            Dashboard
+          </button>
+          */}
+        </nav>
+
+        {/* Sidebar Footer */}
+        <div className="p-4 border-t border-border space-y-2">
+          <button
+            onClick={() => window.location.href = '/onboarding'}
+            className="w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-all duration-200"
+          >
+            <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Settings
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Header Bar */}
+        <header className="border-b border-border bg-card/30 backdrop-blur-sm">
+          <div className="px-8 py-4 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Dashboard</h2>
+              <p className="text-sm text-muted-foreground">
+                {user?.email || 'Welcome back'}
+              </p>
+            </div>
+            <div className="flex items-center space-x-4">
+              <ThemeToggle />
+              <div className="flex items-center space-x-2 px-3 py-2 rounded-lg bg-muted/50">
+                <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="text-sm font-medium">Admin</span>
               </div>
-              <div className="flex items-center space-x-4">
-                <ThemeToggle />
-                <Button
-                  onClick={handleLogout}
-                  variant="outline"
-                  className="px-6 py-3 rounded-2xl font-medium hover:bg-accent transition-all duration-200"
-                >
-                  Sign Out
-                </Button>
-              </div>
+              <button
+                onClick={handleLogout}
+                className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                aria-label="Sign out"
+              >
+                <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+              </button>
             </div>
           </div>
-        </div>
+        </header>
 
-        {/* Main content */}
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Content Area - Views are rendered here based on activeView state */}
+        <main className="flex-1 overflow-auto p-8">
+          {activeView === 'profile' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1, duration: 0.5 }}
-              className="hover-lift"
+              transition={{ duration: 0.4 }}
+              className="max-w-5xl"
             >
-              <div className="glass shadow-apple-lg rounded-3xl p-8 h-full border border-border group">
-                <div className="flex items-center mb-6">
+              {/* Profile Header Card */}
+              <div className="glass shadow-lg rounded-2xl p-6 border border-border mb-6">
+                <div className="flex items-center">
                   <motion.div
-                    className="w-14 h-14 bg-black dark:bg-white rounded-2xl flex items-center justify-center mr-4 shadow-apple-lg"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    className="w-14 h-14 bg-gradient-to-br from-primary to-primary/60 rounded-2xl flex items-center justify-center mr-4 shadow-lg"
+                    whileHover={{ scale: 1.05, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
-                    <svg className="w-7 h-7 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <svg className="w-7 h-7 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                   </motion.div>
                   <div>
-                    <h3 className="text-xl font-bold">Upload Video</h3>
-                    <p className="text-muted-foreground text-sm">Start analyzing your ad creative</p>
+                    <h3 className="text-2xl font-bold">Your Profile</h3>
+                    <p className="text-sm text-muted-foreground">Personalized insights based on your preferences</p>
                   </div>
                 </div>
-                <Button className="w-full py-3 rounded-2xl font-medium bg-black dark:bg-white text-white dark:text-black hover:opacity-90 shadow-apple-lg transition-all duration-200">
-                  Upload Video
-                </Button>
+              </div>
+
+              {/* Profile Summary Card */}
+              <div className="glass shadow-lg rounded-2xl p-8 border border-border">
+                <div className="mb-6">
+                  <h4 className="text-lg font-semibold mb-2">Profile Summary</h4>
+                  <p className="text-sm text-muted-foreground">
+                    This summary is generated based on your onboarding preferences and helps tailor your analytics experience.
+                  </p>
+                </div>
+
+                <div className="bg-muted/30 dark:bg-muted/10 rounded-xl p-6 border border-border">
+                  <p className="text-foreground leading-relaxed">
+                    {profileSummary || 'Loading your profile summary...'}
+                  </p>
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    onClick={() => window.location.href = '/onboarding'}
+                    className="px-5 py-2.5 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/90 transition-all duration-200 shadow-sm"
+                  >
+                    Update Preferences
+                  </button>
+                </div>
               </div>
             </motion.div>
+          )}
 
+          {/* Placeholder for future views - add more content sections here */}
+          {/* Example for future agents:
+          {activeView === 'dashboard' && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="hover-lift"
+              transition={{ duration: 0.4 }}
             >
-              <div className="glass shadow-apple-lg rounded-3xl p-8 h-full border border-border group">
-                <div className="flex items-center mb-6">
-                  <motion.div
-                    className="w-14 h-14 bg-black dark:bg-white rounded-2xl flex items-center justify-center mr-4 shadow-apple-lg"
-                    whileHover={{ scale: 1.1, rotate: -5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <svg className="w-7 h-7 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </motion.div>
-                  <div>
-                    <h3 className="text-xl font-bold">Recent Reports</h3>
-                    <p className="text-muted-foreground text-sm">View your analysis history</p>
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  No reports yet. Upload a video to get started.
-                </div>
+              <h3 className="text-xl font-bold mb-4">Dashboard Content</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                // Add dashboard cards here
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="hover-lift"
-            >
-              <div className="glass shadow-apple-lg rounded-3xl p-8 h-full border border-border group">
-                <div className="flex items-center mb-6">
-                  <motion.div
-                    className="w-14 h-14 bg-black dark:bg-white rounded-2xl flex items-center justify-center mr-4 shadow-apple-lg"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    transition={{ type: "spring", stiffness: 400 }}
-                  >
-                    <svg className="w-7 h-7 text-white dark:text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </motion.div>
-                  <div>
-                    <h3 className="text-xl font-bold">Settings</h3>
-                    <p className="text-muted-foreground text-sm">Manage your preferences</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full py-3 rounded-2xl font-medium hover:bg-accent transition-all duration-200"
-                >
-                  View Settings
-                </Button>
-              </div>
-            </motion.div>
-          </div>
-        </div>
+          )}
+          */}
+        </main>
       </div>
     </div>
   )
