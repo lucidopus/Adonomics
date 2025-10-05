@@ -177,6 +177,12 @@ export async function analyzeVideo(
   try {
     console.log('🎬 Starting Twelve Labs video analysis for videoId:', videoId)
 
+    // First check if video is ready for analysis
+    const isReady = await isVideoReadyForAnalysis(videoId)
+    if (!isReady) {
+      throw new Error('Video is still being processed by Twelve Labs. Please wait for indexing to complete (typically 5-15 minutes) before analyzing.')
+    }
+
     // Validate environment variables
     if (!process.env.TWELVE_LABS_API_KEY) {
       throw new Error('TwelveLabs API key is not configured')
@@ -192,81 +198,278 @@ export async function analyzeVideo(
 
     console.log('🔑 Twelve Labs client initialized')
 
-    // For now, we'll use a mock analysis since the exact API endpoints may vary
-    // In production, this would call the actual Twelve Labs analysis API
-    // The analysis would typically include:
-    // - Scene detection and description
-    // - Object recognition
-    // - Emotion analysis
-    // - Theme extraction
-    // - Audience targeting insights
+    // Get comprehensive summary using Twelve Labs API
+    console.log('📝 Generating video summary...')
+    const summaryResult = await (client as any).summarize({
+      videoId,
+      type: 'summary',
+      prompt: 'Create a detailed summary of this advertisement video, including the product/service being advertised, key messaging, target audience, and overall creative approach.'
+    })
 
-    console.log('📊 Generating mock analysis result...')
+    // Get gist information (titles, topics, hashtags)
+    console.log('🏷️ Extracting video gist...')
+    const gistResult = await (client as any).gist({
+      videoId,
+      types: ['title', 'topic', 'hashtag']
+    })
 
-    // Mock analysis result based on video processing
-    // In production, this would be the raw summary from Twelve Labs API
-    const rawTwelveLabsSummary = `This video advertisement presents a comprehensive solution for modern productivity challenges. The 45-second spot opens with relatable scenarios of professionals struggling with time management and information overload. The product demonstration showcases intuitive features through clean, modern UI animations. Customer testimonials highlight significant efficiency improvements, with one user reporting 40% time savings. The ad maintains professional production quality throughout, with clear audio and engaging visuals. Target audience analysis indicates strong appeal to tech-savvy millennials aged 25-35 working in knowledge-based industries.`
+    // Get detailed scene-by-scene analysis
+    console.log('🎭 Analyzing scenes and creative elements...')
+    const sceneAnalysis = await (client as any).analyze({
+      videoId,
+      prompt: `Analyze this advertisement scene by scene. For each major scene, describe:
+      - What happens visually
+      - Key objects and elements present
+      - Emotional tone and audience reactions
+      - How it contributes to the overall message
+      Format as a structured list of scenes with timestamps.`,
+      temperature: 0.2
+    })
 
-    const mockAnalysis = {
+    // Get creative strengths and weaknesses
+    console.log('💪 Analyzing creative strengths and weaknesses...')
+    const strengthsAnalysis = await (client as any).analyze({
+      videoId,
+      prompt: `Evaluate the creative strengths and weaknesses of this advertisement. Consider:
+      - Storytelling effectiveness
+      - Visual impact and production quality
+      - Emotional resonance
+      - Technical execution
+      - Audience engagement potential
+      Provide specific examples and actionable insights.`,
+      temperature: 0.2
+    })
+
+    // Get target audience insights
+    console.log('👥 Analyzing target audience...')
+    const audienceAnalysis = await (client as any).analyze({
+      videoId,
+      prompt: `Based on the content, visuals, and messaging in this advertisement, identify:
+      - Primary target audience demographics (age, gender, interests, profession)
+      - Psychographic profile (lifestyle, values, aspirations)
+      - Why this audience would be interested in the product/service
+      - Cultural or social context that resonates with them`,
+      temperature: 0.2
+    })
+
+    // Extract themes from topics
+    const themes = gistResult?.topics || gistResult?.data?.topics || []
+
+    // Parse scene analysis to extract structured scene data
+    const scenes = parseSceneAnalysis(sceneAnalysis?.data || sceneAnalysis?.result || '')
+
+    // Parse strengths and weaknesses
+    const { strengths, weaknesses } = parseStrengthsWeaknesses(strengthsAnalysis?.data || strengthsAnalysis?.result || '')
+
+    // Extract target audience
+    const targetAudience = audienceAnalysis?.data || audienceAnalysis?.result || 'General audience'
+
+    const analysisResult = {
       task_id: `analysis_${videoId}_${Date.now()}`,
       video_id: videoId,
       analysis_data: {
-        summary: rawTwelveLabsSummary, // Raw summary from Twelve Labs
-        scenes: [
-          {
-            start: 0,
-            end: 15,
-            description: "Opening scene establishing product context and user problem",
-            objects: ["person", "smartphone", "computer"],
-            emotions: ["frustration", "curiosity"]
-          },
-          {
-            start: 15,
-            end: 30,
-            description: "Product introduction with key features demonstration",
-            objects: ["product", "interface", "graphics"],
-            emotions: ["excitement", "interest"]
-          },
-          {
-            start: 30,
-            end: 45,
-            description: "Social proof and testimonials from satisfied users",
-            objects: ["people", "testimonials", "logos"],
-            emotions: ["trust", "aspiration"]
-          }
-        ],
-        themes: ["problem-solution", "innovation", "efficiency", "user-centric"],
-        target_audience: "young professionals aged 25-35, tech-savvy millennials",
-        strengths: [
-          "Clear value proposition",
-          "Strong emotional storytelling",
-          "Professional production quality",
-          "Compelling call-to-action"
-        ],
-        weaknesses: [
-          "Could benefit from faster pacing",
-          "Limited demographic diversity in testimonials"
-        ]
+        summary: summaryResult?.data || summaryResult?.result || summaryResult?.summary || 'Analysis summary not available',
+        scenes,
+        themes,
+        target_audience: targetAudience,
+        strengths,
+        weaknesses
       },
       extracted_at: new Date()
     }
 
     console.log('✅ Twelve Labs analysis completed:', {
-      task_id: mockAnalysis.task_id,
-      video_id: mockAnalysis.video_id,
-      summary_length: mockAnalysis.analysis_data.summary?.length || 0,
-      scenes_count: mockAnalysis.analysis_data.scenes.length,
-      themes_count: mockAnalysis.analysis_data.themes.length,
-      strengths_count: mockAnalysis.analysis_data.strengths.length,
-      weaknesses_count: mockAnalysis.analysis_data.weaknesses.length
+      task_id: analysisResult.task_id,
+      video_id: analysisResult.video_id,
+      summary_length: analysisResult.analysis_data.summary?.length || 0,
+      scenes_count: analysisResult.analysis_data.scenes.length,
+      themes_count: analysisResult.analysis_data.themes.length,
+      strengths_count: analysisResult.analysis_data.strengths.length,
+      weaknesses_count: analysisResult.analysis_data.weaknesses.length
     })
-    console.log('📝 Raw Twelve Labs summary:', mockAnalysis.analysis_data.summary)
+    console.log('📝 Raw Twelve Labs summary:', analysisResult.analysis_data.summary)
 
-    return mockAnalysis
+    return analysisResult
 
   } catch (error) {
     console.error('❌ Error analyzing video with Twelve Labs:', error)
+
+    // Provide more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('video_not_ready') || error.message.includes('still being indexed')) {
+        throw new Error('Video is still being processed by Twelve Labs. Please wait for indexing to complete (typically 5-15 minutes) before analyzing.')
+      }
+      if (error.message.includes('not found')) {
+        throw new Error('Video not found in Twelve Labs index')
+      }
+      if (error.message.includes('API key') || error.message.includes('unauthorized')) {
+        throw new Error('Twelve Labs API key is invalid')
+      }
+      if (error.message.includes('quota') || error.message.includes('limit') || error.message.includes('rate')) {
+        throw new Error('Twelve Labs API quota exceeded or rate limited')
+      }
+    }
+
     throw new Error('Failed to analyze video')
+  }
+}
+
+/**
+ * Parses scene analysis text into structured scene objects
+ */
+function parseSceneAnalysis(analysisText: string): Array<{
+  start: number
+  end: number
+  description: string
+  objects: string[]
+  emotions: string[]
+}> {
+  // Simple parsing logic - in production, you might want more sophisticated NLP
+  const scenes: Array<{
+    start: number
+    end: number
+    description: string
+    objects: string[]
+    emotions: string[]
+  }> = []
+
+  // Split by common scene delimiters
+  const sceneBlocks = analysisText.split(/\n\s*(?=Scene|scene|\d+\.|\-)/)
+
+  sceneBlocks.forEach((block, index) => {
+    if (block.trim().length < 20) return // Skip very short blocks
+
+    // Estimate timing based on index (this is approximate)
+    const start = index * 10 // Rough estimate: 10 seconds per scene
+    const end = (index + 1) * 10
+
+    // Extract description
+    const description = block.replace(/^(Scene|scene|\d+\.|\-)\s*/i, '').trim()
+
+    // Simple object extraction (look for common objects)
+    const objects = extractObjects(description)
+
+    // Simple emotion extraction
+    const emotions = extractEmotions(description)
+
+    scenes.push({
+      start,
+      end,
+      description,
+      objects,
+      emotions
+    })
+  })
+
+  // If no scenes were parsed, throw an error
+  if (scenes.length === 0) {
+    throw new Error('Failed to parse any scenes from the analysis text')
+  }
+
+  return scenes
+}
+
+/**
+ * Parses strengths and weaknesses from analysis text
+ */
+function parseStrengthsWeaknesses(analysisText: string): { strengths: string[], weaknesses: string[] } {
+  const strengths: string[] = []
+  const weaknesses: string[] = []
+
+  // Split into lines and look for strength/weakness indicators
+  const lines = analysisText.split('\n')
+
+  lines.forEach(line => {
+    const lowerLine = line.toLowerCase().trim()
+
+    if (lowerLine.includes('strength') || lowerLine.includes('good') || lowerLine.includes('effective') ||
+        lowerLine.includes('strong') || lowerLine.includes('excellent') || lowerLine.includes('well')) {
+      if (line.length > 10) strengths.push(line.trim())
+    }
+
+    if (lowerLine.includes('weakness') || lowerLine.includes('improve') || lowerLine.includes('could') ||
+        lowerLine.includes('weak') || lowerLine.includes('lacking') || lowerLine.includes('issue')) {
+      if (line.length > 10) weaknesses.push(line.trim())
+    }
+  })
+
+  // If no specific strengths/weaknesses found, throw an error
+  if (strengths.length === 0) {
+    throw new Error('Failed to identify any strengths in the analysis text')
+  }
+
+  if (weaknesses.length === 0) {
+    throw new Error('Failed to identify any weaknesses in the analysis text')
+  }
+
+  return { strengths, weaknesses }
+}
+
+/**
+ * Extracts common objects from description text
+ */
+function extractObjects(description: string): string[] {
+  const commonObjects = ['person', 'people', 'product', 'logo', 'text', 'screen', 'phone', 'computer', 'car', 'house', 'food', 'drink']
+  const foundObjects: string[] = []
+
+  commonObjects.forEach(obj => {
+    if (description.toLowerCase().includes(obj)) {
+      foundObjects.push(obj)
+    }
+  })
+
+  return foundObjects.length > 0 ? foundObjects : ['advertisement elements']
+}
+
+/**
+ * Extracts emotions from description text
+ */
+function extractEmotions(description: string): string[] {
+  const commonEmotions = ['happy', 'sad', 'excited', 'frustrated', 'curious', 'trust', 'aspiration', 'joy', 'anger', 'surprise']
+  const foundEmotions: string[] = []
+
+  commonEmotions.forEach(emotion => {
+    if (description.toLowerCase().includes(emotion)) {
+      foundEmotions.push(emotion)
+    }
+  })
+
+  return foundEmotions.length > 0 ? foundEmotions : ['engagement']
+}
+
+/**
+ * Checks if a video is ready for analysis
+ * @param videoId - The video ID to check
+ * @returns Promise resolving to true if video is ready
+ */
+export async function isVideoReadyForAnalysis(videoId: string): Promise<boolean> {
+  try {
+    if (!process.env.TWELVE_LABS_API_KEY) {
+      throw new Error('TwelveLabs API key is not configured')
+    }
+
+    const client = new TwelveLabs({
+      apiKey: process.env.TWELVE_LABS_API_KEY
+    })
+
+    // Try a simple analysis call to check if video is ready
+    try {
+      await (client as any).summarize({
+        videoId,
+        type: 'summary',
+        prompt: 'Test summary'
+      })
+      return true
+    } catch (error: any) {
+      if (error.message?.includes('video_not_ready') || error.message?.includes('still being indexed')) {
+        return false
+      }
+      // If it's a different error, the video might be ready but there was another issue
+      return true
+    }
+  } catch (error) {
+    console.error('Error checking video readiness:', error)
+    return false
   }
 }
 

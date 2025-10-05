@@ -83,6 +83,12 @@ export default function VideoSearch() {
           <div>
             <h3 className="text-2xl font-bold">Video Search & Analysis</h3>
             <p className="text-sm text-muted-foreground">Discover videos and unlock instant AI-powered advertising insights</p>
+            <div className="mt-2 flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">Analysis performed on live URLs only</span>
+            </div>
           </div>
         </div>
       </motion.div>

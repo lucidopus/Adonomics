@@ -6,6 +6,37 @@ import Button from './ui/Button'
 import AnalysisDashboard from './AnalysisDashboard'
 
 interface AnalysisData {
+  twelve_labs_summary?: string
+  metadata?: {
+    brand?: string
+    campaign_name?: string
+    year?: number
+    quarter?: string
+    platform?: string
+    region?: string
+  }
+  creative_features?: {
+    scene_id?: string
+    scene_duration?: number
+    objects_present?: string[]
+    faces_detected?: number
+    brand_logo_presence?: boolean
+    text_on_screen?: string[]
+    audio_elements?: string[]
+    music_tempo?: string
+    music_mode?: string
+    color_palette_dominant?: string[]
+    editing_pace?: number
+  }
+  emotional_features?: {
+    emotion_primary?: string
+    emotion_intensity?: number
+    emotional_arc_timeline?: string[]
+    tone_of_voice?: string
+    facial_expression_emotions?: Record<string, number>
+    audience_perceived_sentiment?: string
+    cultural_sensitivity_flag?: boolean
+  }
   success_prediction: {
     confidence_score: number
     key_strengths: string[]
@@ -24,6 +55,9 @@ interface AnalysisData {
     action_items: string[]
     optimization_priorities: string[]
     user_specific_insights: string
+    performance_based_rationale?: string
+    expected_roi_impact?: string
+    competitive_benchmarking?: string
   }
   creative_analysis: {
     storytelling_effectiveness: string
@@ -103,14 +137,14 @@ export default function HomeDashboard() {
       }
 
        const result = await response.json()
-       setUploadProgress('Upload successful! Starting analysis...')
+       setUploadProgress('Upload successful! Video is being indexed by Twelve Labs...')
 
-       // Store advertisement ID and trigger analysis
+       // Store advertisement ID and video title
        setAdvertisementId(result.advertisementId)
        setVideoTitle(selectedFile?.name || videoUrl || 'Uploaded Video')
 
-       // Start analysis
-       await handleAnalysis(result.advertisementId)
+       // Wait for video indexing to complete before analysis
+       await waitForVideoIndexing(result.advertisementId)
 
        // Reset form
        setSelectedFile(null)
@@ -128,6 +162,75 @@ export default function HomeDashboard() {
     }
   }
 
+  const waitForVideoIndexing = async (adId: string) => {
+    const maxAttempts = 30 // 30 attempts = 15 minutes max wait (30 seconds between each)
+    let attempts = 0
+
+    setUploadProgress('Video is being indexed by Twelve Labs. This may take 5-15 minutes...')
+
+    while (attempts < maxAttempts) {
+      try {
+        attempts++
+        const timeElapsed = Math.floor(attempts * 0.5) // 0.5 minutes per attempt
+        setUploadProgress(`Indexing video... (${timeElapsed} min elapsed, typically takes 5-15 min)`)
+
+        // Try to analyze - if it returns 202, video isn't ready yet
+        const response = await fetch('/api/analyze-advertisement', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ advertisementId: adId })
+        })
+
+        const responseText = await response.text()
+        let result
+        try {
+          result = JSON.parse(responseText)
+        } catch (parseError) {
+          console.error('❌ Failed to parse response:', parseError)
+          throw new Error(`Invalid response format`)
+        }
+
+        // If status is 202, video is still indexing - wait and retry
+        if (response.status === 202) {
+          console.log(`⏳ Video still indexing... attempt ${attempts}/${maxAttempts}`)
+          await new Promise(resolve => setTimeout(resolve, 30000)) // Wait 30 seconds
+          continue
+        }
+
+        // If we got a different error, throw it
+        if (!response.ok) {
+          throw new Error(result.error || 'Analysis failed')
+        }
+
+        // Success! Video is indexed and analyzed
+        console.log('✅ Video indexed and analyzed successfully')
+
+        // Validate the response structure
+        if (!result.analysis?.synthesis?.report) {
+          console.error('❌ Invalid analysis response structure:', result)
+          throw new Error('Analysis response is missing expected data. Please try again.')
+        }
+
+        setAnalysisData(result.analysis.synthesis.report)
+        setUploadProgress('Analysis complete!')
+        return
+
+      } catch (error) {
+        // If it's not a 202 error, throw it
+        if (error instanceof Error && !error.message.includes('still being indexed')) {
+          throw error
+        }
+      }
+    }
+
+    // If we've exhausted all attempts
+    const waitMessage = 'Video indexing is taking longer than expected. Please use the "Retry Analysis" button in a few minutes.'
+    setUploadProgress(waitMessage)
+    alert(waitMessage)
+  }
+
   const handleAnalysis = async (adId: string) => {
     setUploadProgress('Analyzing video content...')
 
@@ -140,20 +243,63 @@ export default function HomeDashboard() {
         body: JSON.stringify({ advertisementId: adId })
       })
 
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Analysis failed')
+      console.log('🔍 API Response status:', response.status)
+      console.log('🔍 API Response ok:', response.ok)
+      console.log('🔍 API Response headers:', Object.fromEntries(response.headers.entries()))
+
+      const responseText = await response.text()
+      console.log('🔍 Raw response text:', responseText)
+
+      let result
+      try {
+        result = JSON.parse(responseText)
+      } catch (parseError) {
+        console.error('❌ Failed to parse response as JSON:', parseError)
+        throw new Error(`Invalid response format: ${responseText}`)
       }
 
-      const result = await response.json()
-      setAnalysisData(result.analysis.synthesis.report)
-      setUploadProgress('Analysis complete!')
+      // Handle 202 (Accepted) FIRST - video is still being indexed
+      // Note: 202 is technically "ok" (2xx status), but it means "not ready yet"
+      if (response.status === 202) {
+        const waitMessage = result.message || 'Video is still being indexed by Twelve Labs. This typically takes 5-15 minutes. Please wait and try analyzing again later.'
+        setUploadProgress(waitMessage)
+        alert(waitMessage)
+        return
+      }
+
+      // Handle other error status codes
+      if (!response.ok) {
+        throw new Error(result.error || 'Analysis failed')
+      }
+
+       // Debug: Log the full response structure
+       console.log('🔍 Analysis API Response:', {
+         hasAnalysis: !!result.analysis,
+         hasSynthesis: !!result.analysis?.synthesis,
+         hasReport: !!result.analysis?.synthesis?.report,
+         synthesisKeys: result.analysis?.synthesis ? Object.keys(result.analysis.synthesis) : [],
+         fullStructure: result
+       })
+
+       // Validate the response structure
+       if (!result.analysis?.synthesis?.report) {
+         console.error('❌ Invalid analysis response structure:', {
+           result,
+           analysis: result.analysis,
+           synthesis: result.analysis?.synthesis
+         })
+         throw new Error('Analysis response is missing expected data. Please try again.')
+       }
+
+       setAnalysisData(result.analysis.synthesis.report)
+       setUploadProgress('Analysis complete!')
 
     } catch (error) {
       console.error('Analysis error:', error)
       alert(`Analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
-      setUploadProgress('')
+      setIsUploading(false)
+      // Don't clear upload progress here - let it stay visible for user feedback
     }
   }
 
@@ -340,15 +486,28 @@ export default function HomeDashboard() {
         )}
 
         {/* Upload Progress */}
-        {isUploading && (
+        {uploadProgress && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="mt-6 p-4 bg-muted/30 rounded-xl border border-border"
           >
-            <div className="flex items-center space-x-3">
-              <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-              <span className="text-sm font-medium">{uploadProgress}</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                {isUploading && (
+                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                )}
+                <span className="text-sm font-medium">{uploadProgress}</span>
+              </div>
+              {advertisementId && !isUploading && uploadProgress.includes('indexed') && (
+                <Button
+                  onClick={() => handleAnalysis(advertisementId)}
+                  size="sm"
+                  variant="outline"
+                >
+                  Retry Analysis
+                </Button>
+              )}
             </div>
           </motion.div>
         )}

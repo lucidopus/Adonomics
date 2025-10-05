@@ -26,7 +26,7 @@ import {
   PainPoint
 } from '@/types/database'
 import { searchSimilarVideosById, analyzeVideo } from './twelve-labs'
-import { SYSTEM_PROMPT, TOOL_DEFINITIONS, SYNTHESIS_PROMPT } from './prompts'
+
 import Groq from 'groq-sdk'
 
 // Note: Twelve Labs analysis would be done via their API
@@ -82,6 +82,37 @@ interface AnalysisResults {
 
 interface AnalysisReport {
   twelve_labs_summary?: string // Raw summary from Twelve Labs
+  metadata?: {
+    ad_id: string
+    brand?: string
+    campaign_name?: string
+    year?: number
+    quarter?: string
+    platform?: string
+    region?: string
+  }
+  creative_features?: {
+    scene_id?: string
+    scene_duration?: number
+    objects_present?: string[]
+    faces_detected?: number
+    brand_logo_presence?: boolean
+    text_on_screen?: string[]
+    audio_elements?: string[]
+    music_tempo?: string
+    music_mode?: string
+    color_palette_dominant?: string[]
+    editing_pace?: number
+  }
+  emotional_features?: {
+    emotion_primary?: string
+    emotion_intensity?: number
+    emotional_arc_timeline?: string[]
+    tone_of_voice?: string
+    facial_expression_emotions?: Record<string, number>
+    audience_perceived_sentiment?: string
+    cultural_sensitivity_flag?: boolean
+  }
   success_prediction: {
     confidence_score: number
     key_strengths: string[]
@@ -100,6 +131,9 @@ interface AnalysisReport {
     action_items: string[]
     optimization_priorities: string[]
     user_specific_insights: string
+    performance_based_rationale?: string
+    expected_roi_impact?: string
+    competitive_benchmarking?: string
   }
   creative_analysis: {
     storytelling_effectiveness: string
@@ -304,28 +338,8 @@ async function analyzeVideoWithTwelveLabs(videoId: string): Promise<TwelveLabsAn
     const analysisResult = await analyzeVideo(videoId)
     return analysisResult
   } catch (error) {
-    console.error('Error analyzing video with Twelve Labs:', error)
-    // Fallback to basic mock data if API fails
-    return {
-      task_id: `fallback_${videoId}`,
-      video_id: videoId,
-      analysis_data: {
-        scenes: [
-          {
-            start: 0,
-            end: 10,
-            description: "Video content analysis pending",
-            objects: ["video"],
-            emotions: ["neutral"]
-          }
-        ],
-        themes: ["content"],
-        target_audience: "general",
-        strengths: ["uploaded successfully"],
-        weaknesses: ["analysis failed"]
-      },
-      extracted_at: new Date()
-    }
+    console.error('❌ Error analyzing video with Twelve Labs:', error)
+    throw new Error(`Failed to analyze video with Twelve Labs: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
@@ -428,61 +442,70 @@ export async function generateAnalysisReport(
       competitive_search: analysisResults.competitive_search
     }
 
-    // Create the synthesis prompt with context
-    const synthesisPrompt = `${SYNTHESIS_PROMPT}
+    // Create a simplified synthesis prompt
+    const synthesisPrompt = `Generate a JSON analysis report for this video advertisement using the following data:
 
-Context from analysis pipeline:
-${JSON.stringify(context, null, 2)}
+Video Summary: ${context.twelve_labs_summary || 'No summary available'}
 
-Please provide your analysis in the required function call format.`
+User Profile: ${context.user_profile?.summary || 'No profile available'}
+
+Competitive Data: ${context.competitive_search?.similar_ads?.length || 0} similar ads found
+
+Return ONLY a valid JSON object with this exact structure:
+{
+  "twelve_labs_summary": "string",
+  "metadata": {"ad_id": "string", "brand": "string", "campaign_name": "string", "year": 2024, "quarter": "Q4", "platform": "YouTube", "region": "Global"},
+  "creative_features": {"scene_id": "main", "scene_duration": 30, "objects_present": ["product"], "faces_detected": 1, "brand_logo_presence": true, "text_on_screen": ["CTA"], "audio_elements": ["music"], "music_tempo": "moderate", "music_mode": "positive", "color_palette_dominant": ["#000"], "editing_pace": 1.0},
+  "emotional_features": {"emotion_primary": "positive", "emotion_intensity": 7, "emotional_arc_timeline": ["intro", "body", "cta"], "tone_of_voice": "confident", "facial_expression_emotions": {"happy": 0.8}, "audience_perceived_sentiment": "positive", "cultural_sensitivity_flag": false},
+  "success_prediction": {"confidence_score": 80, "key_strengths": ["Clear message"], "performance_factors": ["Good targeting"], "audience_fit": "Target demographic", "competitive_advantage": "Unique value prop"},
+  "risk_assessment": {"risk_level": "low", "potential_issues": ["Minor issues"], "failure_risks": ["Low engagement"], "mitigation_suggestions": ["Monitor performance"]},
+  "personalized_recommendations": {"decision_suggestion": "approve", "action_items": ["Launch campaign"], "optimization_priorities": ["Audience targeting"], "user_specific_insights": "Based on your profile", "performance_based_rationale": "Meets KPIs", "expected_roi_impact": "Positive ROI", "competitive_benchmarking": "Above average"},
+  "creative_analysis": {"storytelling_effectiveness": "Good", "visual_impact": "Strong", "emotional_resonance": "High", "technical_quality": "Professional"},
+  "competitive_intelligence": {"market_positioning": "Competitive", "benchmark_comparison": "Above average", "differentiation_opportunities": ["Unique features"], "trend_alignment": "Current trends"}
+}
+
+Fill in the values based on the provided data. Respond with ONLY the JSON object, no additional text.`
 
     console.log('📝 Final synthesis prompt being sent to Groq:')
     console.log('--- SYNTHESIS PROMPT START ---')
-    console.log(synthesisPrompt)
+    console.log(synthesisPrompt.substring(0, 500) + '...')
     console.log('--- SYNTHESIS PROMPT END ---')
 
-    // Make the API call with function calling
-    console.log('🔄 Making Groq API call with model: openai/gpt-oss-20b')
+    // Try with a reliable model
+    console.log('🔄 Making Groq API call with model: openai/gpt-oss-120b')
     console.log('📝 Synthesis prompt length:', synthesisPrompt.length)
-    console.log('🛠️ Tools count:', TOOL_DEFINITIONS.length)
-    console.log('🤖 System prompt preview:', SYSTEM_PROMPT.substring(0, 200) + '...')
-    console.log('🔧 Tool definitions:', TOOL_DEFINITIONS.map(t => t.function.name))
 
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-20b",
+      model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "system",
-          content: SYSTEM_PROMPT
+          content: "You are an AI assistant that generates structured JSON analysis reports for video advertisements. Always respond with valid JSON only, no additional text."
         },
         {
           role: "user",
           content: synthesisPrompt
         }
       ],
-      tools: TOOL_DEFINITIONS,
-      tool_choice: { type: "function", function: { name: "generate_analysis_report" } },
-      temperature: 0.3,
-      max_tokens: 2000
+      temperature: 0.1,
+      max_tokens: 4000
     })
 
     console.log('✅ Groq API response received')
     console.log('📊 Response choices:', completion.choices?.length)
-    console.log('🔧 Tool calls:', completion.choices?.[0]?.message?.tool_calls?.length)
 
-    // Extract the function call from the response
-    const toolCall = completion.choices[0]?.message?.tool_calls?.[0]
-    console.log('🎯 Tool call function name:', toolCall?.function?.name)
-    console.log('📄 Tool call arguments length:', toolCall?.function?.arguments?.length)
+    // Extract the JSON response
+    const messageContent = completion.choices[0]?.message?.content
+    console.log('📄 Response content length:', messageContent?.length)
 
-    if (!toolCall || toolCall.function.name !== 'generate_analysis_report') {
-      console.error('❌ Invalid tool call:', toolCall)
-      throw new Error('Failed to get analysis report from AI response')
+    if (!messageContent) {
+      throw new Error('No content received from AI')
     }
 
-    // Parse the function arguments
-    console.log('🔍 Parsing function arguments...')
-    const report = JSON.parse(toolCall.function.arguments)
+    console.log('🔍 Parsing JSON response...')
+    console.log('📄 Raw response preview:', messageContent.substring(0, 200) + '...')
+
+    const report = JSON.parse(messageContent)
     console.log('✅ Successfully parsed analysis report')
 
     return report
@@ -492,45 +515,10 @@ Please provide your analysis in the required function call format.`
     console.error('🔍 Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
       name: error instanceof Error ? error.constructor.name : 'Unknown',
-      stack: error instanceof Error ? error.stack : 'No stack trace'
+      stack: error instanceof Error ? error.stack?.substring(0, 500) : 'No stack trace'
     })
 
-    // Fallback to mock data if API fails
-    console.log('Falling back to mock analysis report')
-    return {
-      twelve_labs_summary: "This video advertisement presents a comprehensive solution for modern productivity challenges. The 45-second spot opens with relatable scenarios of professionals struggling with time management and information overload. The product demonstration showcases intuitive features through clean, modern UI animations. Customer testimonials highlight significant efficiency improvements, with one user reporting 40% time savings. The ad maintains professional production quality throughout, with clear audio and engaging visuals. Target audience analysis indicates strong appeal to tech-savvy millennials aged 25-35 working in knowledge-based industries.",
-      success_prediction: {
-        confidence_score: 75,
-        key_strengths: ["Video uploaded successfully"],
-        performance_factors: ["Analysis pipeline completed"],
-        audience_fit: "General audience",
-        competitive_advantage: "New campaign"
-      },
-      risk_assessment: {
-        risk_level: "medium",
-        potential_issues: ["API integration in progress"],
-        failure_risks: ["Technical issues during analysis"],
-        mitigation_suggestions: ["Retry analysis", "Check API configuration"]
-      },
-      personalized_recommendations: {
-        decision_suggestion: "suspend",
-        action_items: ["Complete API integration", "Test analysis pipeline"],
-        optimization_priorities: ["Fix Groq API connection"],
-        user_specific_insights: analysisResults.user_profile?.summary || "Analysis in development"
-      },
-      creative_analysis: {
-        storytelling_effectiveness: "Analysis pending API integration",
-        visual_impact: "Video uploaded successfully",
-        emotional_resonance: "To be determined",
-        technical_quality: "Video processing completed"
-      },
-      competitive_intelligence: {
-        market_positioning: "Analysis in progress",
-        benchmark_comparison: "Data collection ongoing",
-        differentiation_opportunities: "To be evaluated",
-        trend_alignment: "Market research pending"
-      }
-    }
+    throw new Error(`Failed to generate analysis report: ${error instanceof Error ? error.message : 'Unknown error'}`)
   }
 }
 
@@ -561,8 +549,13 @@ export async function analyzeAdvertisement(
     return analysisResults
 
   } catch (error) {
-    console.error('Error analyzing advertisement:', error)
-    throw new Error('Failed to complete advertisement analysis')
+    console.error('❌ Error analyzing advertisement:', error)
+    console.error('🔍 Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      phase: 'advertisement_analysis'
+    })
+    throw error // Re-throw the original error for better debugging
   }
 }
 
@@ -583,3 +576,4 @@ export class CreativeGenomeAgent {
     return analyzeAdvertisement(videoId, userId)
   }
 }
+

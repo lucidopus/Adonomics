@@ -3,6 +3,7 @@ import { ObjectId } from 'mongodb'
 import clientPromise from '@/lib/mongodb/client'
 import { AdvertisementModel, Advertisement } from '@/lib/mongodb/models/Advertisement'
 import { analyzeAdvertisement } from '@/lib/ai-agent'
+import { isVideoReadyForAnalysis } from '@/lib/twelve-labs'
 
 interface AnalyzeAdvertisementRequest {
   advertisementId: string
@@ -61,6 +62,31 @@ export async function POST(request: NextRequest) {
       )
 
     try {
+      // Check if video is ready for analysis
+      console.log('🔍 Checking if video is ready for analysis...')
+      const isReady = await isVideoReadyForAnalysis(advertisement.twelve_labs_video_id)
+
+      if (!isReady) {
+        // Update status back to upload with indexing message
+        await db
+          .collection(AdvertisementModel.collectionName)
+          .updateOne(
+            { _id: new ObjectId(advertisementId) },
+            {
+              $set: AdvertisementModel.updateStatus(advertisement, 'upload', undefined, 'Video is still being indexed by Twelve Labs. Please wait 5-15 minutes before analyzing.')
+            }
+          )
+
+        return NextResponse.json(
+          {
+            error: 'Video is still being indexed',
+            message: 'Your video is still being processed by Twelve Labs. Please wait 5-15 minutes for indexing to complete before running analysis.',
+            retryAfter: 900 // 15 minutes in seconds
+          },
+          { status: 202 } // Accepted but not processed
+        )
+      }
+
       // Execute the analysis pipeline
       const analysisResults = await analyzeAdvertisement(
         advertisement.twelve_labs_video_id,
@@ -103,35 +129,66 @@ export async function POST(request: NextRequest) {
           { $set: finalAd }
         )
 
-      return NextResponse.json({
-        success: true,
-        advertisementId,
-        analysis: analysisResults
+       console.log('✅ Analysis completed successfully, returning results:', {
+         hasAnalysis: !!analysisResults,
+         hasSynthesis: !!analysisResults.synthesis,
+         hasReport: !!analysisResults.synthesis?.report,
+         synthesisKeys: analysisResults.synthesis ? Object.keys(analysisResults.synthesis) : []
+       })
+
+       return NextResponse.json({
+         success: true,
+         advertisementId,
+         analysis: analysisResults
+       })
+
+    } catch (analysisError: any) {
+      console.error('❌ Analysis error:', analysisError)
+      console.error('🔍 Error details:', {
+        message: analysisError.message,
+        stack: analysisError.stack,
+        name: analysisError.name
       })
 
-    } catch (analysisError) {
-      console.error('Analysis error:', analysisError)
+      let errorMessage = 'Analysis failed'
+      let statusCode = 500
 
-      // Update status to failed
+      // Handle specific video indexing error
+      if (analysisError.message?.includes('still being processed') ||
+          analysisError.message?.includes('still being indexed')) {
+        errorMessage = 'Video is still being indexed by Twelve Labs. Please wait 5-15 minutes before analyzing.'
+        statusCode = 202 // Accepted but not processed
+      }
+
+      // Update status appropriately
+      const statusUpdate = statusCode === 202 ? 'upload' : 'upload'
       await db
         .collection(AdvertisementModel.collectionName)
         .updateOne(
           { _id: new ObjectId(advertisementId) },
           {
-            $set: AdvertisementModel.updateStatus(advertisement, 'upload', undefined, 'Analysis failed')
+            $set: AdvertisementModel.updateStatus(advertisement, statusUpdate, undefined, errorMessage)
           }
         )
 
       return NextResponse.json(
-        { error: 'Analysis failed' },
-        { status: 500 }
+        {
+          error: errorMessage,
+          ...(statusCode === 202 && { retryAfter: 900 }) // 15 minutes
+        },
+        { status: statusCode }
       )
     }
 
   } catch (error) {
-    console.error('Error analyzing advertisement:', error)
+    console.error('❌ Error analyzing advertisement:', error)
+    console.error('🔍 Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace',
+      name: error instanceof Error ? error.name : 'Unknown'
+    })
     return NextResponse.json(
-      { error: 'Failed to analyze advertisement' },
+      { error: 'Failed to analyze advertisement', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

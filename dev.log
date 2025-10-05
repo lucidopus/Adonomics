@@ -1,0 +1,791 @@
+
+> adonomics@0.1.0 dev
+> next dev --turbopack
+
+   ▲ Next.js 15.5.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://10.0.0.11:3000
+   - Environments: .env.local, .env
+
+ ✓ Starting...
+ ✓ Compiled middleware in 115ms
+ ✓ Ready in 933ms
+ ○ Compiling /api/test-video-ready ...
+ ✓ Compiled /api/test-video-ready in 1293ms
+ POST /api/test-video-ready 200 in 8152ms
+ ✓ Compiled /api/analyze-advertisement in 181ms
+ POST /api/analyze-advertisement 404 in 1218ms
+ ✓ Compiled /api/advertisements in 108ms
+ GET /api/advertisements 200 in 392ms
+ GET /api/advertisements?status=upload 200 in 269ms
+🔍 Checking if video is ready for analysis...
+Starting analysis for video 68e24f0b830688fe0b91f7cf by user 68e1a373529ebebf69780e75
+Step 1: Analyzing video with Twelve Labs
+🎬 Starting Twelve Labs video analysis for videoId: 68e24f0b830688fe0b91f7cf
+🔑 Twelve Labs client initialized
+📝 Generating video summary...
+🏷️ Extracting video gist...
+🎭 Analyzing scenes and creative elements...
+💪 Analyzing creative strengths and weaknesses...
+👥 Analyzing target audience...
+✅ Twelve Labs analysis completed: {
+  task_id: 'analysis_68e24f0b830688fe0b91f7cf_1759662330001',
+  video_id: '68e24f0b830688fe0b91f7cf',
+  summary_length: 1901,
+  scenes_count: 50,
+  themes_count: 1,
+  strengths_count: 2,
+  weaknesses_count: 1
+}
+📝 Raw Twelve Labs summary: This advertisement video showcases the seamless and efficient payment processes available at a modern grocery store, highlighting both traditional and innovative payment methods. The video begins with a woman, characterized by her long dark hair and wearing glasses, standing at a checkout counter. She is dressed in a blue jacket over a striped shirt, and she is making a purchase using her credit card. The cashier, a male, is seen looking down as she attempts to swipe her card. However, there is a slight delay in the transaction, and the cashier provides guidance on how to properly insert the card, emphasizing the need to wait for two beeps and suggesting she insert the card flat like landing a plane. This interaction underscores the importance of proper card insertion techniques to ensure a smooth transaction, which is a key message of the video.
+The second part of the video transitions to another customer, who is using Apple Pay to make a contactless payment. He holds his smartphone near the reader, which prompts him with the message "Hold Near Reader." The transaction is confirmed quickly, and he smiles as he walks away from the register. This segment of the video highlights the convenience and speed of digital payment methods, contrasting them with the traditional card swipe method.
+The overall creative approach of the video is to demonstrate the variety of payment options available to customers, emphasizing both the reliability of traditional methods and the efficiency of modern digital solutions. The target audience appears to be tech-savvy individuals who are familiar with both traditional and digital payment methods, as well as those who might need a bit of guidance to ensure smooth transactions. The video aims to reassure customers about the ease and reliability of the payment process, whether they choose to use a credit card or a digital wallet like Apple Pay.
+Step 2: Generating user profile summary
+Step 3: Gathering competitive intelligence
+🔍 Starting competitive intelligence search for videoId: 68e24f0b830688fe0b91f7cf
+📈 Found similar videos: 10
+✅ Competitive intelligence gathered: { similar_ads_count: 10, top_score: 79.25 }
+📝 Final synthesis prompt being sent to Groq:
+--- SYNTHESIS PROMPT START ---
+Synthesize all information into a Creative Intelligence Lab analysis report. Use the generate_analysis_report function with this exact JSON structure:
+
+{
+  "twelve_labs_summary": "Raw Twelve Labs summary",
+  "metadata": {"brand": "string", "campaign_name": "string", "year": 2025, "quarter": "Q4", "platform": "YouTube", "region": "North America"},
+  "creative_features": {"scene_id": "scene_1", "scene_duration": 15, "objects_present": ["product"], "faces_detected": 1, "brand_logo_presence": true, "text_on_screen": ["CTA"], "audio_elements": ["voiceover"], "music_tempo": "moderate", "music_mode": "major", "color_palette_dominant": ["#000000"], "editing_pace": 1.0},
+  "emotional_features": {"emotion_primary": "excitement", "emotion_intensity": 7, "emotional_arc_timeline": ["curiosity", "excitement"], "tone_of_voice": "confident", "facial_expression_emotions": {"happy": 0.8}, "audience_perceived_sentiment": "positive", "cultural_sensitivity_flag": false},
+  "success_prediction": {"confidence_score": 85, "key_strengths": ["Strong hook"], "performance_factors": ["Clear value prop"], "audience_fit": "Tech millennials", "competitive_advantage": "Better engagement"},
+  "risk_assessment": {"risk_level": "low", "potential_issues": ["Slow pacing"], "failure_risks": ["Low conversion"], "mitigation_suggestions": ["Speed up intro"]},
+  "personalized_recommendations": {"decision_suggestion": "approve", "action_items": ["Add CTA"], "optimization_priorities": ["Pacing"], "user_specific_insights": "Focus on ROAS", "performance_based_rationale": "Will boost engagement by 15%", "expected_roi_impact": "20% ROAS increase", "competitive_benchmarking": "Above category average"},
+  "creative_analysis": {"storytelling_effectiveness": "Strong narrative", "visual_impact": "Clean design", "emotional_resonance": "High trust", "technical_quality": "Professional"},
+  "competitive_intelligence": {"market_positioning": "Mid-tier", "benchmark_comparison": "Above average", "differentiation_opportunities": "Unique features", "trend_alignment": "Current trends"}
+}
+
+Focus on hackathon requirements: creative recommendations, performance rationale, ROI projections, competitive benchmarking.
+
+Context from analysis pipeline:
+{
+  "twelve_labs_summary": "This advertisement video showcases the seamless and efficient payment processes available at a modern grocery store, highlighting both traditional and innovative payment methods. The video begins with a woman, characterized by her long dark hair and wearing glasses, standing at a checkout counter. She is dressed in a blue jacket over a striped shirt, and she is making a purchase using her credit card. The cashier, a male, is seen looking down as she attempts to swipe her card. However, there is a slight delay in the transaction, and the cashier provides guidance on how to properly insert the card, emphasizing the need to wait for two beeps and suggesting she insert the card flat like landing a plane. This interaction underscores the importance of proper card insertion techniques to ensure a smooth transaction, which is a key message of the video.\nThe second part of the video transitions to another customer, who is using Apple Pay to make a contactless payment. He holds his smartphone near the reader, which prompts him with the message \"Hold Near Reader.\" The transaction is confirmed quickly, and he smiles as he walks away from the register. This segment of the video highlights the convenience and speed of digital payment methods, contrasting them with the traditional card swipe method.\nThe overall creative approach of the video is to demonstrate the variety of payment options available to customers, emphasizing both the reliability of traditional methods and the efficiency of modern digital solutions. The target audience appears to be tech-savvy individuals who are familiar with both traditional and digital payment methods, as well as those who might need a bit of guidance to ensure smooth transactions. The video aims to reassure customers about the ease and reliability of the payment process, whether they choose to use a credit card or a digital wallet like Apple Pay.",
+  "video_analysis": {
+    "task_id": "analysis_68e24f0b830688fe0b91f7cf_1759662330001",
+    "video_id": "68e24f0b830688fe0b91f7cf",
+    "analysis_data": {
+      "summary": "This advertisement video showcases the seamless and efficient payment processes available at a modern grocery store, highlighting both traditional and innovative payment methods. The video begins with a woman, characterized by her long dark hair and wearing glasses, standing at a checkout counter. She is dressed in a blue jacket over a striped shirt, and she is making a purchase using her credit card. The cashier, a male, is seen looking down as she attempts to swipe her card. However, there is a slight delay in the transaction, and the cashier provides guidance on how to properly insert the card, emphasizing the need to wait for two beeps and suggesting she insert the card flat like landing a plane. This interaction underscores the importance of proper card insertion techniques to ensure a smooth transaction, which is a key message of the video.\nThe second part of the video transitions to another customer, who is using Apple Pay to make a contactless payment. He holds his smartphone near the reader, which prompts him with the message \"Hold Near Reader.\" The transaction is confirmed quickly, and he smiles as he walks away from the register. This segment of the video highlights the convenience and speed of digital payment methods, contrasting them with the traditional card swipe method.\nThe overall creative approach of the video is to demonstrate the variety of payment options available to customers, emphasizing both the reliability of traditional methods and the efficiency of modern digital solutions. The target audience appears to be tech-savvy individuals who are familiar with both traditional and digital payment methods, as well as those who might need a bit of guidance to ensure smooth transactions. The video aims to reassure customers about the ease and reliability of the payment process, whether they choose to use a credit card or a digital wallet like Apple Pay.",
+      "scenes": [
+        {
+          "start": 0,
+          "end": 10,
+          "description": "**[0s (00:00)-2s (00:02)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 10,
+          "end": 20,
+          "description": "Visual: A man in a yellow polo shirt stands at a grocery store checkout counter.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 20,
+          "end": 30,
+          "description": "Key Objects/Elements: The man, the checkout counter, groceries.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 30,
+          "end": 40,
+          "description": "Emotional Tone/Audience Reaction: Neutral, focused on transaction.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 40,
+          "end": 50,
+          "description": "Contribution: Sets up the context of a typical grocery purchase.",
+          "objects": [
+            "text"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 50,
+          "end": 60,
+          "description": "**[2s (00:02)-4s (00:04)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 60,
+          "end": 70,
+          "description": "Visual: A woman swipes a red credit card at the card reader.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 70,
+          "end": 80,
+          "description": "Key Objects/Elements: Credit card, card reader.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 80,
+          "end": 90,
+          "description": "Emotional Tone/Audience Reaction: Routine, no visible emotion.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 90,
+          "end": 100,
+          "description": "Contribution: Highlights traditional payment method.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 100,
+          "end": 110,
+          "description": "**[4s (00:04)-7s (00:07)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 110,
+          "end": 120,
+          "description": "Visual: Close-up of the card reader as the card is swiped.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 120,
+          "end": 130,
+          "description": "Key Objects/Elements: Card reader, credit card.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 130,
+          "end": 140,
+          "description": "Emotional Tone/Audience Reaction: Focused on the action.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 140,
+          "end": 150,
+          "description": "Contribution: Emphasizes the process of traditional payment.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 150,
+          "end": 160,
+          "description": "**[7s (00:07)-10s (00:10)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 160,
+          "end": 170,
+          "description": "Visual: The woman continues to swipe the card.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 170,
+          "end": 180,
+          "description": "Key Objects/Elements: Credit card, card reader.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 180,
+          "end": 190,
+          "description": "Emotional Tone/Audience Reaction: Still routine.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 190,
+          "end": 200,
+          "description": "Contribution: Continues to highlight traditional payment.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 200,
+          "end": 210,
+          "description": "**[10s (00:10)-15s (00:15)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 210,
+          "end": 220,
+          "description": "Visual: The man and woman converse.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 220,
+          "end": 230,
+          "description": "Key Objects/Elements: Both individuals.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 230,
+          "end": 240,
+          "description": "Emotional Tone/Audience Reaction: Neutral, engaged in conversation.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 240,
+          "end": 250,
+          "description": "Contribution: Builds interaction between characters.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 250,
+          "end": 260,
+          "description": "**[15s (00:15)-21s (00:21)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 260,
+          "end": 270,
+          "description": "Visual: The woman finishes swiping the card.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 270,
+          "end": 280,
+          "description": "Key Objects/Elements: Credit card, card reader.",
+          "objects": [
+            "car"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 280,
+          "end": 290,
+          "description": "Emotional Tone/Audience Reaction: Routine completion.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 290,
+          "end": 300,
+          "description": "Contribution: Completes the traditional payment process.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 300,
+          "end": 310,
+          "description": "**[21s (00:21)-23s (00:23)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 310,
+          "end": 320,
+          "description": "Visual: The man gestures towards the next customer.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 320,
+          "end": 330,
+          "description": "Key Objects/Elements: Man, next customer.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 330,
+          "end": 340,
+          "description": "Emotional Tone/Audience Reaction: Transitioning.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 340,
+          "end": 350,
+          "description": "Contribution: Moves the narrative forward.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 350,
+          "end": 360,
+          "description": "**[23s (00:23)-26s (00:26)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 360,
+          "end": 370,
+          "description": "Visual: A new customer uses Apple Pay on their phone.",
+          "objects": [
+            "phone"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 370,
+          "end": 380,
+          "description": "Key Objects/Elements: Phone, Apple Pay interface.",
+          "objects": [
+            "phone"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 380,
+          "end": 390,
+          "description": "Emotional Tone/Audience Reaction: Smooth, efficient.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 390,
+          "end": 400,
+          "description": "Contribution: Introduces the new payment method.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 400,
+          "end": 410,
+          "description": "**[26s (00:26)-28s (00:28)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 410,
+          "end": 420,
+          "description": "Visual: The customer completes the transaction.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 420,
+          "end": 430,
+          "description": "Key Objects/Elements: Phone, Apple Pay interface.",
+          "objects": [
+            "phone"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 430,
+          "end": 440,
+          "description": "Emotional Tone/Audience Reaction: Satisfied, efficient.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 440,
+          "end": 450,
+          "description": "Contribution: Demonstrates the ease of Apple Pay.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 450,
+          "end": 460,
+          "description": "**[28s (00:28)-30s (00:30)]**",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 460,
+          "end": 470,
+          "description": "Visual: Apple Pay logo appears.",
+          "objects": [
+            "logo"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 470,
+          "end": 480,
+          "description": "Key Objects/Elements: Apple Pay logo.",
+          "objects": [
+            "logo"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 480,
+          "end": 490,
+          "description": "Emotional Tone/Audience Reaction: Recognizable, brand-focused.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        },
+        {
+          "start": 490,
+          "end": 500,
+          "description": "Contribution: Reinforces the brand and message.",
+          "objects": [
+            "advertisement elements"
+          ],
+          "emotions": [
+            "engagement"
+          ]
+        }
+      ],
+      "themes": [
+        "Payment Methods at Grocery Store Checkout"
+      ],
+      "target_audience": "The primary target audience for this Apple Pay advertisement appears to be young adults, typically between the ages of 20-40, who are tech-savvy and value convenience and efficiency in their daily lives. The visuals show both a woman and a man using Apple Pay at a grocery store checkout, indicating a gender-diverse audience. These individuals likely have interests in technology and modern payment methods, and may be professionals or students with busy schedules.\n\nPsychographically, the audience is characterized by a lifestyle that values simplicity and speed. They may have a busy schedule and appreciate the ease of making payments without the need for physical cards. Their values might include innovation, security, and environmental consciousness, as Apple Pay promotes a cashless society and reduces the use of plastic cards.\n\nThis audience would be interested in the product because it offers a seamless and secure way to make transactions. The visual emphasis on the ease of use, such as tapping a phone to pay, appeals to those who want quick and efficient solutions. Additionally, the presence of recognizable brands like Delgado's Deli adds credibility and relatability to the service.\n\nCulturally, the advertisement resonates with a modern, urban lifestyle where technology plays a significant role. The setting in a grocery store is relatable to many consumers, highlighting the everyday convenience of Apple Pay. The diversity of the characters also reflects a socially inclusive environment, appealing to a broad audience that values inclusivity and accessibility in technology.",
+      "strengths": [
+        "The advertisement effectively communicates the benefits of Apple Pay through a clear and visually appealing narrative. Early in the video, the storytelling is strong as it highlights the convenience and efficiency of using Apple Pay, contrasting it with a slightly more cumbersome credit card transaction. The visuals are crisp and well-composed, with close-up shots of the credit card and phone screens that draw attention to the Apple Pay interface, enhancing the focus on the product.",
+        "Emotionally, the ad resonates well by showing the satisfaction and relief of a successful transaction, which is mirrored by the positive reaction of the second customer. This reinforces the message of seamless payment experiences. Technically, the ad demonstrates the product's functionality smoothly, with a clear display of the Apple Pay interface and a seamless transition between scenes."
+      ],
+      "weaknesses": [
+        "However, the ad could benefit from broader engagement potential. It focuses on a single transaction scenario, which might limit its appeal to a wider audience. Expanding the narrative to include diverse user experiences could enhance engagement. Additionally, providing more contextual background about the store or the customers could add depth to the storytelling and make the narrative more engaging."
+      ]
+    },
+    "extracted_at": "2025-10-05T11:05:30.001Z"
+  },
+  "user_profile": {
+    "summary": "The user is a media buyer/performance marketer. Their primary goals are to maximize roi and conversion rates, reduce creative testing costs, and get faster creative approval cycles. They prioritize brand safety and compliance, competitor benchmarking, cost efficiency (predicted roas) when evaluating creative performance. They prefer ai-generated narrative insights. They typically runs e-commerce / sales, event promotion, brand repositioning campaigns and advertises on YouTube, Meta (Facebook/Instagram). They need insights during pre-flight (before launching campaign), in-flight (during active campaigns) phases same day. They shares insights with just me, media buying team and prefers csv/excel data for sharing. Their main frustrations include hard to compare across platforms.",
+    "generated_at": "2025-10-05T11:05:30.019Z"
+  },
+  "competitive_search": {
+    "similar_ads": [
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 79.25,
+        "performance_indicators": {
+          "engagement_rate": 0.09065711956930891,
+          "conversion_rate": 0.04128422577687851,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19f0d64ff05606e152957",
+        "score": 78.22,
+        "performance_indicators": {
+          "engagement_rate": 0.01548714771937938,
+          "conversion_rate": 0.04529210373590083,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.82,
+        "performance_indicators": {
+          "engagement_rate": 0.07269686713465587,
+          "conversion_rate": 0.013237351355391537,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.76,
+        "performance_indicators": {
+          "engagement_rate": 0.024748334592644784,
+          "conversion_rate": 0.019128674953850566,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.75,
+        "performance_indicators": {
+          "engagement_rate": 0.04666913942537481,
+          "conversion_rate": 0.013097443187723313,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.66,
+        "performance_indicators": {
+          "engagement_rate": 0.08860006139856827,
+          "conversion_rate": 0.04474690716642774,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.59,
+        "performance_indicators": {
+          "engagement_rate": 0.08281991275991725,
+          "conversion_rate": 0.038846242241096174,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e1a15c66ecb2513d7ef1ae",
+        "score": 77.5,
+        "performance_indicators": {
+          "engagement_rate": 0.05204880944782824,
+          "conversion_rate": 0.011115088947086339,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.25,
+        "performance_indicators": {
+          "engagement_rate": 0.011090178866675494,
+          "conversion_rate": 0.020116706249566876,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      },
+      {
+        "id": "68e19fb4f2e53b115e1ae31d",
+        "score": 77.25,
+        "performance_indicators": {
+          "engagement_rate": 0.01788790632570583,
+          "conversion_rate": 0.005444236493679389,
+          "success_factors": [
+            "strong hook",
+            "clear value prop"
+          ]
+        }
+      }
+    ],
+    "searched_at": "2025-10-05T11:05:30.920Z"
+  }
+}
+
+Please provide your analysis in the required function call format.
+--- SYNTHESIS PROMPT END ---
+🔄 Making Groq API call with model: openai/gpt-oss-20b
+📝 Synthesis prompt length: 27339
+🛠️ Tools count: 4
+🤖 System prompt preview: You are the Creative Intelligence Lab AI Agent for the Advertising Week Hackathon. Your role is to analyze video advertisements by integrating quantitative and qualitative feedback from creative prete...
+🔧 Tool definitions: [
+  'twelve_labs_analyze',
+  'get_user_profile',
+  'search_similar_ads',
+  'generate_analysis_report'
+]
+✅ Groq API response received
+📊 Response choices: 1
+🔧 Tool calls: 1
+🎯 Tool call function name: generate_analysis_report
+📄 Tool call arguments length: 3991
+🔍 Parsing function arguments...
+✅ Successfully parsed analysis report
+Analysis completed successfully
+ POST /api/analyze-advertisement 200 in 54431ms
