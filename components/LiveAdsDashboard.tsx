@@ -88,19 +88,39 @@ export default function LiveAdsDashboard() {
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState<'roas' | 'engagement_score' | 'views' | 'spend'>('roas')
   const [filterPlatform, setFilterPlatform] = useState<string>('all')
+  const [isDarkMode, setIsDarkMode] = useState(false)
 
   useEffect(() => {
-    // Load live ads data
-    fetch('/data/live_ads.json')
+    // Fetch live advertisements from MongoDB
+    fetch('/api/advertisements?status=live')
       .then(response => response.json())
       .then(data => {
         setLiveAds(data)
         setLoading(false)
       })
       .catch(error => {
-        console.error('Error loading live ads data:', error)
+        console.error('Error loading advertisements:', error)
         setLoading(false)
       })
+  }, [])
+
+  // Detect theme changes
+  useEffect(() => {
+    const checkTheme = () => {
+      setIsDarkMode(document.documentElement.classList.contains('dark'))
+    }
+
+    // Initial check
+    checkTheme()
+
+    // Listen for theme changes
+    const observer = new MutationObserver(checkTheme)
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class']
+    })
+
+    return () => observer.disconnect()
   }, [])
 
   if (loading) {
@@ -230,10 +250,10 @@ export default function LiveAdsDashboard() {
   const totalConversions = liveAds.reduce((sum, ad) => sum + (ad.metrics?.conversions || 0), 0)
 
   const funnelData = [
-    { name: 'Impressions', value: totalImpressions, fill: '#3b82f6' },
-    { name: 'Views', value: totalViews, fill: '#06b6d4' },
-    { name: 'Clicks', value: totalClicks, fill: '#8b5cf6' },
-    { name: 'Conversions', value: totalConversions, fill: '#10b981' }
+    { name: 'Impressions', value: totalImpressions, fill: '#3b82f6', stroke: '#d1d5db', strokeWidth: 1 },
+    { name: 'Views', value: totalViews, fill: '#8b5cf6', stroke: '#d1d5db', strokeWidth: 1 },
+    { name: 'Clicks', value: totalClicks, fill: '#f59e0b', stroke: '#d1d5db', strokeWidth: 1 },
+    { name: 'Conversions', value: totalConversions, fill: '#10b981', stroke: '#d1d5db', strokeWidth: 1 }
   ]
 
   // Filter and sort ads
@@ -793,10 +813,10 @@ export default function LiveAdsDashboard() {
               >
                 <LabelList
                   position="center"
-                  fill="#fff"
-                  stroke="none"
-                  fontSize={12}
-                    formatter={(value: any) => formatNumber(value as number)}
+                  fill={isDarkMode ? "#ffffff" : "#374151"}
+                  fontSize={13}
+                  fontWeight="500"
+                  formatter={(value: any) => formatNumber(value as number)}
                 />
               </Funnel>
             </FunnelChart>
