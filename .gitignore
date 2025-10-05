@@ -6,6 +6,7 @@
 .pnp.*
 .yarn/*
 .claude/*
+data/
 .vscode/
 !.yarn/patches
 !.yarn/plugins
