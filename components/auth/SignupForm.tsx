@@ -33,10 +33,10 @@ export default function SignupForm() {
         throw new Error(data.error || 'Signup failed')
       }
 
-      // Store user data in localStorage for simple session management
-      localStorage.setItem('user', JSON.stringify(data.user))
-      // Redirect to dashboard
-      window.location.href = '/dashboard'
+       // Store user data in localStorage for simple session management
+       localStorage.setItem('user', JSON.stringify(data.user))
+       // Redirect to onboarding for new users
+       window.location.href = '/onboarding'
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {

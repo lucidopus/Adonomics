@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import clientPromise from '@/lib/mongodb/client'
 import { UserModel } from '@/lib/mongodb/models/User'
+import { UserPreferencesModel } from '@/lib/mongodb/models/UserPreferences'
 import { hashPassword } from '@/lib/auth/password'
 
 export async function POST(request: NextRequest) {
@@ -41,6 +42,10 @@ export async function POST(request: NextRequest) {
     // Create user
     const userData = UserModel.createUser(email, hashedPassword)
     const result = await db.collection(UserModel.collectionName).insertOne(userData)
+
+    // Create empty user preferences for onboarding
+    const emptyPreferences = UserPreferencesModel.createEmptyPreferences(result.insertedId)
+    await db.collection(UserPreferencesModel.collectionName).insertOne(emptyPreferences)
 
     return NextResponse.json({
       user: {

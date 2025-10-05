@@ -20,8 +20,22 @@ export default function OnboardingPage() {
 
       const user = JSON.parse(userData)
 
-      // For now, assume onboarding is not completed
-      // In a real app, you'd check this from MongoDB
+      // Check if user has completed onboarding by fetching from API
+      try {
+        const response = await fetch(`/api/preferences?userId=${user.id}`)
+        const data = await response.json()
+
+        if (response.ok && data.preferences?.onboarding_completed) {
+          // User has already completed onboarding, redirect to dashboard
+          window.location.href = '/dashboard'
+          return
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error)
+        // Continue with onboarding if we can't check status
+      }
+
+      // User needs to complete onboarding
       setUser(user)
       setIsLoading(false)
     }

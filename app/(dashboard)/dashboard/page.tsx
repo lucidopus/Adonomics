@@ -11,10 +11,29 @@ export default function DashboardPage() {
   useEffect(() => {
     async function checkAuth() {
       // Check if user is logged in via localStorage
-      const user = localStorage.getItem('user')
+      const userData = localStorage.getItem('user')
 
-      if (!user) {
+      if (!userData) {
         window.location.href = '/login'
+        return
+      }
+
+      const user = JSON.parse(userData)
+
+      // Check if user has completed onboarding by fetching from API
+      try {
+        const response = await fetch(`/api/preferences?userId=${user.id}`)
+        const data = await response.json()
+
+        if (!response.ok || !data.preferences?.onboarding_completed) {
+          // User hasn't completed onboarding, redirect to onboarding
+          window.location.href = '/onboarding'
+          return
+        }
+      } catch (error) {
+        console.error('Error checking onboarding status:', error)
+        // If we can't check, assume they need onboarding
+        window.location.href = '/onboarding'
         return
       }
 
@@ -24,10 +43,13 @@ export default function DashboardPage() {
     checkAuth()
   }, [])
 
-  const handleLogout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' })
-    window.location.href = '/'
-  }
+   const handleLogout = async () => {
+     await fetch('/api/auth/logout', { method: 'POST' })
+     // Clear user data and onboarding status from localStorage
+     localStorage.removeItem('user')
+     localStorage.removeItem('onboarding_completed')
+     window.location.href = '/'
+   }
 
   if (isLoading) {
     return (
