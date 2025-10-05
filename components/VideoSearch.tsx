@@ -72,7 +72,7 @@ export default function VideoSearch() {
       >
         <div className="flex items-center">
           <motion.div
-            className="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mr-4 shadow-lg"
+            className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mr-4 shadow-lg"
             whileHover={{ scale: 1.05 }}
             transition={{ duration: 0.2 }}
           >
@@ -227,7 +227,7 @@ export default function VideoSearch() {
 
                   {video.score && (
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Relevance</span>
+                       <span className="text-xs text-muted-foreground">Match Score</span>
                       <span className="text-xs font-medium text-primary">
                         {video.score.toFixed(2)}
                       </span>

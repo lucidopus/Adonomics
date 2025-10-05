@@ -144,7 +144,7 @@ export default function AnalysisModal({ isOpen, onClose, video }: AnalysisModalP
                   <h5 className="font-medium mb-2">Hashtags</h5>
                   <div className="flex flex-wrap gap-2">
                     {results.gist.hashtags.map((hashtag) => (
-                      <span key={`hashtag-${hashtag}`} className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs">
+                        <span key={`hashtag-${hashtag}`} className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs">
                         #{hashtag}
                       </span>
                     ))}
@@ -327,7 +327,7 @@ export default function AnalysisModal({ isOpen, onClose, video }: AnalysisModalP
                     <p className="text-sm text-muted-foreground">AI-Powered Video Analysis</p>
                     {video.score && (
                       <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-primary/10">
-                        <span className="text-xs font-medium text-primary">Relevance: {video.score.toFixed(2)}</span>
+                         <span className="text-xs font-medium text-primary">Match Score: {video.score.toFixed(2)}</span>
                       </div>
                     )}
                   </div>
