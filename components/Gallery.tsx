@@ -69,13 +69,13 @@ export default function Gallery() {
   }
 
   const getConfidenceScore = (analysis: AnalysisReport) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (analysis.analysis_results?.synthesis?.report as any)?.success_prediction?.confidence_score || 0
+    const report = analysis.analysis_results?.synthesis?.report as { success_prediction?: { confidence_score?: number } } | undefined
+    return report?.success_prediction?.confidence_score || 0
   }
 
   const getRiskLevel = (analysis: AnalysisReport) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return (analysis.analysis_results?.synthesis?.report as any)?.risk_assessment?.risk_level || 'unknown'
+    const report = analysis.analysis_results?.synthesis?.report as { risk_assessment?: { risk_level?: string } } | undefined
+    return report?.risk_assessment?.risk_level || 'unknown'
   }
 
   const getDecisionSuggestion = (analysis: AnalysisReport) => {
@@ -83,7 +83,8 @@ export default function Gallery() {
     if (analysis.analysis_results?.decision) {
       return analysis.analysis_results.decision
     }
-    return (analysis.analysis_results?.synthesis?.report as any)?.personalized_recommendations?.decision_suggestion || 'pending'
+    const report = analysis.analysis_results?.synthesis?.report as { personalized_recommendations?: { decision_suggestion?: string } } | undefined
+    return report?.personalized_recommendations?.decision_suggestion || 'pending'
   }
 
   const filteredAnalyses = analyses.filter(analysis => {
@@ -294,20 +295,16 @@ export default function Gallery() {
 
                    {/* Metadata */}
                    <div className="flex flex-wrap gap-1.5">
-                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                     {(analysis.analysis_results?.synthesis?.report as any)?.metadata?.brand && (
-                       <span className="px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
-                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                         {(analysis.analysis_results?.synthesis?.report as any).metadata.brand}
-                       </span>
-                     )}
-                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                     {(analysis.analysis_results?.synthesis?.report as any)?.metadata?.platform && (
-                       <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-xs">
-                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                         {(analysis.analysis_results?.synthesis?.report as any).metadata.platform}
-                       </span>
-                     )}
+                      {(analysis.analysis_results?.synthesis?.report as { metadata?: { brand?: string; platform?: string } })?.metadata?.brand && (
+                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
+                          {(analysis.analysis_results?.synthesis?.report as { metadata?: { brand?: string } }).metadata!.brand}
+                        </span>
+                      )}
+                      {(analysis.analysis_results?.synthesis?.report as { metadata?: { platform?: string } })?.metadata?.platform && (
+                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-xs">
+                          {(analysis.analysis_results?.synthesis?.report as { metadata?: { platform?: string } }).metadata!.platform}
+                        </span>
+                      )}
                      {analysis.status && (
                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                          analysis.status === 'approved' ? 'bg-green-500/10 text-green-600' :

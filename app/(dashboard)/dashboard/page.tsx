@@ -23,9 +23,6 @@ export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
   const [profileSummary, setProfileSummary] = useState<string>('')
   const [activeView, setActiveView] = useState<ActiveView>('home')
-  const [logoClicks, setLogoClicks] = useState(0)
-  const [easterEggActive, setEasterEggActive] = useState(false)
-  const [easterEggMessage, setEasterEggMessage] = useState('')
 
   useEffect(() => {
     async function checkAuth() {
@@ -76,29 +73,7 @@ export default function DashboardPage() {
     window.location.href = '/'
   }
 
-  const handleLogoClick = () => {
-    setLogoClicks(prev => {
-      const newCount = prev + 1
-      if (newCount === 2) {
-        const messages = [
-          "🎉 PARTY TIME! Your dashboard is doing the cha-cha! 💃",
-          "🚀 Adonomics just launched into orbit! Your clicks made it happen!",
-          "🤖 AI Overload! The robots are dancing to your beat!",
-          "🎨 Creative Explosion! Colors are flying everywhere!",
-          "📊 Analytics Gone Wild! Numbers are partying!"
-        ]
-        const randomMessage = messages[Math.floor(Math.random() * messages.length)]
-        setEasterEggMessage(randomMessage)
-        setEasterEggActive(true)
-        setTimeout(() => {
-          setEasterEggActive(false)
-          setEasterEggMessage('')
-        }, 3000) // Deactivate after 3 seconds
-        return 0 // Reset counter
-      }
-      return newCount
-    })
-  }
+
 
   if (isLoading) {
     return (
@@ -115,49 +90,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className={`min-h-screen flex ${easterEggActive ? 'animate-party-time rainbow-party' : 'bg-background'}`}>
-      {/* Easter Egg Message Overlay */}
-      {easterEggActive && easterEggMessage && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center pointer-events-none overflow-hidden">
-          {/* Confetti */}
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div
-              key={i}
-              className="confetti-piece"
-              style={{
-                left: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7', '#a29bfe'][Math.floor(Math.random() * 8)],
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
-
-          <div className="bg-black/80 backdrop-blur-sm rounded-2xl p-8 text-center animate-bounce-in relative z-10">
-            <div className="flex justify-center space-x-4 mb-4">
-              <div className="text-4xl animate-spin">🎊</div>
-              <div className="text-4xl animate-bounce">🎉</div>
-              <div className="text-4xl animate-pulse">🤪</div>
-            </div>
-            <p className="text-white text-xl font-bold animate-pulse">{easterEggMessage}</p>
-            <div className="mt-4 text-yellow-300 text-sm animate-bounce">
-              🎉 You found the secret! 🎉
-            </div>
-            <div className="mt-2 text-pink-300 text-xs animate-ping">
-              *Party sounds intensify*
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="min-h-screen flex bg-background">
       {/* Sidebar Navigation */}
-      <aside className={`w-64 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col ${easterEggActive ? 'animate-party-time' : ''}`}>
+      <aside className="w-64 border-r border-border bg-card/50 backdrop-blur-sm flex flex-col">
         {/* Brand Header */}
         <div className="p-6 border-b border-border">
           <div className="flex items-center space-x-2">
             <h1
-              className="text-xl font-bold tracking-tight cursor-pointer select-none hover:text-primary transition-colors"
-              onClick={handleLogoClick}
-              title="Click me twice for a surprise!"
+              className="text-xl font-bold tracking-tight"
             >
               Adonomics
             </h1>
