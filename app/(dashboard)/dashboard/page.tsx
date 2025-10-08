@@ -205,7 +205,7 @@ export default function DashboardPage() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col">
         {/* Top Header Bar */}
-        <header className="border-b border-border bg-card/30 backdrop-blur-sm">
+        <header className="border-b border-border bg-card/30 backdrop-blur-sm overflow-visible">
           <div className="px-8 py-4 flex items-center justify-between">
             <div>
               <h2 className="text-2xl font-bold">Dashboard</h2>

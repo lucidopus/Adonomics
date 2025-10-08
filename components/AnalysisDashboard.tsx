@@ -76,10 +76,12 @@ interface AnalysisData {
 interface AnalysisDashboardProps {
   analysisData: AnalysisData
   videoTitle?: string
+  finalDecision?: string
+  finalDecisionComments?: string
   onDecision?: (decision: 'approve' | 'suspend' | 'reject', comments?: string) => void
 }
 
-export default function AnalysisDashboard({ analysisData, videoTitle, onDecision }: AnalysisDashboardProps) {
+export default function AnalysisDashboard({ analysisData, videoTitle, finalDecision, finalDecisionComments, onDecision }: AnalysisDashboardProps) {
   const [decisionComments, setDecisionComments] = useState('')
 
   const getRiskColor = (level: string) => {
@@ -645,38 +647,76 @@ export default function AnalysisDashboard({ analysisData, videoTitle, onDecision
           <h3 className="text-lg font-semibold">Personalized Recommendations</h3>
         </div>
 
-        {/* AI Recommendation */}
-        <div className={`mb-6 p-5 rounded-2xl border-2 ${
-          analysisData.personalized_recommendations.decision_suggestion === 'approve'
-            ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
-            : analysisData.personalized_recommendations.decision_suggestion === 'reject'
-            ? 'bg-gradient-to-br from-red-500/10 to-rose-500/5 border-red-500/30'
-            : 'bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border-yellow-500/30'
-        }`}>
-          <div className="flex items-center space-x-3">
-            {analysisData.personalized_recommendations.decision_suggestion === 'approve' && (
-              <CheckCircle className="w-6 h-6 text-green-600" />
-            )}
-            {analysisData.personalized_recommendations.decision_suggestion === 'reject' && (
-              <XCircle className="w-6 h-6 text-red-600" />
-            )}
-            {analysisData.personalized_recommendations.decision_suggestion === 'suspend' && (
-              <AlertTriangle className="w-6 h-6 text-yellow-600" />
-            )}
-            <div>
-              <div className="text-sm text-muted-foreground">AI Recommendation</div>
-              <div className={`text-lg font-bold capitalize ${
-                analysisData.personalized_recommendations.decision_suggestion === 'approve'
-                  ? 'text-green-600'
-                  : analysisData.personalized_recommendations.decision_suggestion === 'reject'
-                  ? 'text-red-600'
-                  : 'text-yellow-600'
-              }`}>
-                {analysisData.personalized_recommendations.decision_suggestion}
-              </div>
-            </div>
-          </div>
-        </div>
+         {/* AI Recommendation */}
+         <div className={`mb-6 p-5 rounded-2xl border-2 ${
+           analysisData.personalized_recommendations.decision_suggestion === 'approve'
+             ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
+             : analysisData.personalized_recommendations.decision_suggestion === 'reject'
+             ? 'bg-gradient-to-br from-red-500/10 to-rose-500/5 border-red-500/30'
+             : 'bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border-yellow-500/30'
+         }`}>
+           <div className="flex items-center space-x-3">
+             {analysisData.personalized_recommendations.decision_suggestion === 'approve' && (
+               <CheckCircle className="w-6 h-6 text-green-600" />
+             )}
+             {analysisData.personalized_recommendations.decision_suggestion === 'reject' && (
+               <XCircle className="w-6 h-6 text-red-600" />
+             )}
+             {analysisData.personalized_recommendations.decision_suggestion === 'suspend' && (
+               <AlertTriangle className="w-6 h-6 text-yellow-600" />
+             )}
+             <div>
+               <div className="text-sm text-muted-foreground">AI Recommendation</div>
+               <div className={`text-lg font-bold capitalize ${
+                 analysisData.personalized_recommendations.decision_suggestion === 'approve'
+                   ? 'text-green-600'
+                   : analysisData.personalized_recommendations.decision_suggestion === 'reject'
+                   ? 'text-red-600'
+                   : 'text-yellow-600'
+               }`}>
+                 {analysisData.personalized_recommendations.decision_suggestion}
+               </div>
+             </div>
+           </div>
+         </div>
+
+         {/* Final Decision */}
+         {finalDecision && (
+           <div className={`mb-6 p-5 rounded-2xl border-2 ${
+             finalDecision === 'approve'
+               ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
+               : finalDecision === 'reject'
+               ? 'bg-gradient-to-br from-red-500/10 to-rose-500/5 border-red-500/30'
+               : 'bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border-yellow-500/30'
+           }`}>
+             <div className="flex items-center space-x-3">
+               {finalDecision === 'approve' && (
+                 <CheckCircle className="w-6 h-6 text-green-600" />
+               )}
+               {finalDecision === 'reject' && (
+                 <XCircle className="w-6 h-6 text-red-600" />
+               )}
+               {finalDecision === 'suspend' && (
+                 <AlertTriangle className="w-6 h-6 text-yellow-600" />
+               )}
+               <div>
+                 <div className="text-sm text-muted-foreground">Final Decision</div>
+                 <div className={`text-lg font-bold capitalize ${
+                   finalDecision === 'approve'
+                     ? 'text-green-600'
+                     : finalDecision === 'reject'
+                     ? 'text-red-600'
+                     : 'text-yellow-600'
+                 }`}>
+                   {finalDecision}
+                 </div>
+                 <div className="text-sm text-muted-foreground mt-1">
+                   {finalDecisionComments || 'No comments added'}
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>

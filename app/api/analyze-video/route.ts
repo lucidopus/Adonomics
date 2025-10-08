@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     switch (analysisType) {
       case 'gist':
         // Generate titles, topics, and hashtags
-        result = await (client as unknown as { gist: (params: { videoId: string; types: string[] }) => Promise<unknown> }).gist({
+        result = await client.gist({
           videoId,
           types: ['title', 'topic', 'hashtag']
         })
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
       case 'summary':
         // Generate summary with custom prompt if provided
-        result = await (client as unknown as { summarize: (params: { videoId: string; type: string; prompt: string }) => Promise<unknown> }).summarize({
+        result = await client.summarize({
           videoId,
           type: 'summary',
           prompt: prompt || 'Create a concise summary of this video for advertising analysis.'
@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
             { status: 400 }
           )
         }
-        result = await (client as unknown as { analyze: (params: { videoId: string; prompt: string; temperature: number }) => Promise<unknown> }).analyze({
+        result = await client.analyze({
           videoId,
           prompt,
           temperature: 0.2 // Lower temperature for more consistent results

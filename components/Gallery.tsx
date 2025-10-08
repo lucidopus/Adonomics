@@ -13,6 +13,8 @@ interface AnalysisReport {
   created_at: string
   analyzed_at?: string
   analysis_results?: {
+    decision?: string
+    decision_comments?: string
     synthesis?: {
       report: Record<string, unknown>
     }
@@ -77,7 +79,10 @@ export default function Gallery() {
   }
 
   const getDecisionSuggestion = (analysis: AnalysisReport) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // Use final decision if available, otherwise AI recommendation
+    if (analysis.analysis_results?.decision) {
+      return analysis.analysis_results.decision
+    }
     return (analysis.analysis_results?.synthesis?.report as any)?.personalized_recommendations?.decision_suggestion || 'pending'
   }
 
@@ -123,10 +128,12 @@ export default function Gallery() {
             <span>Back to Gallery</span>
           </button>
         </motion.div>
-        <AnalysisDashboard
-          analysisData={selectedAnalysis.analysis_results?.synthesis?.report as never}
-          videoTitle={getVideoTitle(selectedAnalysis)}
-        />
+         <AnalysisDashboard
+           analysisData={selectedAnalysis.analysis_results?.synthesis?.report as never}
+           videoTitle={getVideoTitle(selectedAnalysis)}
+           finalDecision={selectedAnalysis.analysis_results?.decision}
+           finalDecisionComments={selectedAnalysis.analysis_results?.decision_comments}
+         />
       </div>
     )
   }
@@ -285,26 +292,45 @@ export default function Gallery() {
                     )}
                   </div>
 
-                  {/* Metadata */}
-                  {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                  {(analysis.analysis_results?.synthesis?.report as any)?.metadata && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {(analysis.analysis_results?.synthesis?.report as any).metadata.brand && (
-                        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                          {(analysis.analysis_results?.synthesis?.report as any).metadata.brand}
-                        </span>
-                      )}
-                      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                      {(analysis.analysis_results?.synthesis?.report as any).metadata.platform && (
-                        <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-xs">
-                          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                          {(analysis.analysis_results?.synthesis?.report as any).metadata.platform}
-                        </span>
-                      )}
-                    </div>
-                  )}
+                   {/* Metadata */}
+                   <div className="flex flex-wrap gap-1.5">
+                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                     {(analysis.analysis_results?.synthesis?.report as any)?.metadata?.brand && (
+                       <span className="px-2 py-0.5 rounded-full bg-primary/10 text-xs font-medium">
+                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                         {(analysis.analysis_results?.synthesis?.report as any).metadata.brand}
+                       </span>
+                     )}
+                     {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                     {(analysis.analysis_results?.synthesis?.report as any)?.metadata?.platform && (
+                       <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-xs">
+                         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+                         {(analysis.analysis_results?.synthesis?.report as any).metadata.platform}
+                       </span>
+                     )}
+                     {analysis.status && (
+                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                         analysis.status === 'approved' ? 'bg-green-500/10 text-green-600' :
+                         analysis.status === 'suspended' ? 'bg-yellow-500/10 text-yellow-600' :
+                         analysis.status === 'rejected' ? 'bg-red-500/10 text-red-600' :
+                         'bg-gray-500/10 text-gray-600'
+                       }`}>
+                         {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
+                       </span>
+                     )}
+                     {analysis.analysis_results?.decision_comments && (
+                       <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-xs text-red-600">
+                         {analysis.analysis_results.decision_comments}
+                       </span>
+                     )}
+                   </div>
+
+                   {/* Decision Comments */}
+                   {analysis.analysis_results?.decision_comments && (
+                     <div className="text-xs text-red-600 mt-2 px-1">
+                       {analysis.analysis_results.decision_comments}
+                     </div>
+                   )}
                 </div>
               </motion.div>
             ))}
@@ -335,21 +361,33 @@ export default function Gallery() {
                       {getDecisionIcon(getDecisionSuggestion(analysis))}
                     </div>
 
-                    <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-                      <div className="flex items-center space-x-2">
-                        <TrendingUp className="w-4 h-4 text-green-600" />
-                        <span className="font-medium text-green-600">{getConfidenceScore(analysis)}%</span>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${getRiskColor(getRiskLevel(analysis))}`}>
-                        {getRiskLevel(analysis)} risk
-                      </div>
-                      {analysis.analyzed_at && (
-                        <div className="flex items-center space-x-1">
-                          <Calendar className="w-4 h-4" />
-                          <span>{new Date(analysis.analyzed_at).toLocaleDateString()}</span>
-                        </div>
-                      )}
-                    </div>
+                     <div className="flex items-center space-x-6 text-sm text-muted-foreground">
+                       <div className="flex items-center space-x-2">
+                         <TrendingUp className="w-4 h-4 text-green-600" />
+                         <span className="font-medium text-green-600">{getConfidenceScore(analysis)}%</span>
+                       </div>
+                       <div className={`px-3 py-1 rounded-full text-xs font-medium ${getRiskColor(getRiskLevel(analysis))}`}>
+                         {getRiskLevel(analysis)} risk
+                       </div>
+                       {analysis.analyzed_at && (
+                         <div className="flex items-center space-x-1">
+                           <Calendar className="w-4 h-4" />
+                           <span>{new Date(analysis.analyzed_at).toLocaleDateString()}</span>
+                         </div>
+                       )}
+                       {analysis.analysis_results?.decision_comments && (
+                         <div className="px-2 py-1 rounded-full bg-red-500/10 text-xs text-red-600">
+                           {analysis.analysis_results.decision_comments}
+                         </div>
+                       )}
+                     </div>
+
+                     {/* Decision Comments */}
+                     {analysis.analysis_results?.decision_comments && (
+                       <div className="text-xs text-red-600 mt-2 px-1">
+                         {analysis.analysis_results.decision_comments}
+                       </div>
+                     )}
                   </div>
 
                   <svg className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -375,24 +413,24 @@ export default function Gallery() {
               <div className="text-2xl font-bold text-primary">{filteredAnalyses.length}</div>
               <div className="text-sm text-muted-foreground">Total Analyses</div>
             </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600">
-                {filteredAnalyses.filter(a => getDecisionSuggestion(a) === 'approve').length}
-              </div>
-              <div className="text-sm text-muted-foreground">Approved</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-yellow-600">
-                {filteredAnalyses.filter(a => getDecisionSuggestion(a) === 'suspend').length}
-              </div>
-              <div className="text-sm text-muted-foreground">Suspended</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-red-600">
-                {filteredAnalyses.filter(a => getDecisionSuggestion(a) === 'reject').length}
-              </div>
-              <div className="text-sm text-muted-foreground">Rejected</div>
-            </div>
+             <div>
+               <div className="text-2xl font-bold text-green-600">
+                 {filteredAnalyses.filter(a => a.status === 'approved').length}
+               </div>
+               <div className="text-sm text-muted-foreground">Approved</div>
+             </div>
+             <div>
+               <div className="text-2xl font-bold text-yellow-600">
+                 {filteredAnalyses.filter(a => a.status === 'suspended').length}
+               </div>
+               <div className="text-sm text-muted-foreground">Suspended</div>
+             </div>
+             <div>
+               <div className="text-2xl font-bold text-red-600">
+                 {filteredAnalyses.filter(a => a.status === 'rejected').length}
+               </div>
+               <div className="text-sm text-muted-foreground">Rejected</div>
+             </div>
           </div>
         </motion.div>
       )}
