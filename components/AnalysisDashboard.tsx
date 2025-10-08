@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle, AlertTriangle, XCircle, TrendingUp, Target, Lightbulb, BarChart3, Users, FileText } from 'lucide-react'
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
+import { CheckCircle, AlertTriangle, XCircle, TrendingUp, Target, Lightbulb, BarChart3, Users, FileText, Play, Clock, Eye, Sparkles } from 'lucide-react'
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts'
+import { useState } from 'react'
 
 interface AnalysisData {
   twelve_labs_summary?: string
@@ -75,65 +76,166 @@ interface AnalysisData {
 interface AnalysisDashboardProps {
   analysisData: AnalysisData
   videoTitle?: string
+  finalDecision?: string
+  finalDecisionComments?: string
   onDecision?: (decision: 'approve' | 'suspend' | 'reject', comments?: string) => void
 }
 
-export default function AnalysisDashboard({ analysisData, videoTitle, onDecision }: AnalysisDashboardProps) {
+export default function AnalysisDashboard({ analysisData, videoTitle, finalDecision, finalDecisionComments, onDecision }: AnalysisDashboardProps) {
+  const [decisionComments, setDecisionComments] = useState('')
+
   const getRiskColor = (level: string) => {
     switch (level) {
-      case 'low': return 'text-green-600 bg-green-50 border-green-200'
-      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200'
-      case 'high': return 'text-red-600 bg-red-50 border-red-200'
-      default: return 'text-gray-600 bg-gray-50 border-gray-200'
+      case 'low': return {
+        bg: 'from-green-500/10 to-emerald-500/5',
+        border: 'border-green-500/30',
+        text: 'text-green-600',
+        icon: 'bg-green-500'
+      }
+      case 'medium': return {
+        bg: 'from-yellow-500/10 to-amber-500/5',
+        border: 'border-yellow-500/30',
+        text: 'text-yellow-600',
+        icon: 'bg-yellow-500'
+      }
+      case 'high': return {
+        bg: 'from-red-500/10 to-rose-500/5',
+        border: 'border-red-500/30',
+        text: 'text-red-600',
+        icon: 'bg-red-500'
+      }
+      default: return {
+        bg: 'from-gray-500/10 to-slate-500/5',
+        border: 'border-gray-500/30',
+        text: 'text-gray-600',
+        icon: 'bg-gray-500'
+      }
     }
   }
 
-  const getDecisionIcon = (decision: string) => {
-    switch (decision) {
-      case 'approve': return <CheckCircle className="w-5 h-5 text-green-600" />
-      case 'suspend': return <AlertTriangle className="w-5 h-5 text-yellow-600" />
-      case 'reject': return <XCircle className="w-5 h-5 text-red-600" />
-      default: return null
-    }
-  }
-
-  const getDecisionColor = (decision: string) => {
-    switch (decision) {
-      case 'approve': return 'bg-green-50 border-green-200 text-green-800'
-      case 'suspend': return 'bg-yellow-50 border-yellow-200 text-yellow-800'
-      case 'reject': return 'bg-red-50 border-red-200 text-red-800'
-      default: return 'bg-gray-50 border-gray-200 text-gray-800'
-    }
-  }
+  const riskColors = getRiskColor(analysisData.risk_assessment.risk_level)
 
   return (
-    <div className="max-w-6xl space-y-8">
-      {/* Header */}
+    <div className="max-w-7xl mx-auto space-y-6 pb-12">
+      {/* Hero Section */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
+        transition={{ duration: 0.6 }}
+        className="relative overflow-hidden glass rounded-3xl border border-border"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold">Creative Analysis Report</h2>
-            <p className="text-muted-foreground mt-1">
-              {videoTitle || 'Video Advertisement Analysis'}
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <div className="text-sm text-muted-foreground">Confidence Score</div>
-              <div className="text-2xl font-bold text-primary">
-                {analysisData.success_prediction.confidence_score}%
-              </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-purple-500/5 to-blue-500/5" />
+        <div className="relative p-8 md:p-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex-1">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+                className="flex items-center space-x-2 mb-3"
+              >
+                <Sparkles className="w-5 h-5 text-primary" />
+                <span className="text-sm font-medium text-primary">AI-Powered Analysis</span>
+              </motion.div>
+              <motion.h1
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+                className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent mb-2"
+              >
+                Creative Analysis Report
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+                className="text-muted-foreground flex items-center space-x-2"
+              >
+                <Play className="w-4 h-4" />
+                <span>{videoTitle || 'Video Advertisement Analysis'}</span>
+              </motion.p>
             </div>
-            <div className={`px-4 py-2 rounded-xl border ${getRiskColor(analysisData.risk_assessment.risk_level)}`}>
-              <div className="text-sm font-medium capitalize">
-                {analysisData.risk_assessment.risk_level} Risk
-              </div>
+
+            <div className="flex items-center gap-6">
+              {/* Confidence Score */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+                className="relative"
+              >
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/20 to-purple-500/20 p-1">
+                  <div className="w-full h-full rounded-full bg-background flex items-center justify-center border-4 border-primary/30">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold bg-gradient-to-br from-primary to-purple-600 bg-clip-text text-transparent">
+                        {analysisData.success_prediction.confidence_score}%
+                      </div>
+                      <div className="text-xs text-muted-foreground font-medium">Confidence</div>
+                    </div>
+                  </div>
+                </div>
+                <motion.div
+                  className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/30 to-purple-500/30 blur-xl"
+                  animate={{ scale: [1, 1.1, 1], opacity: [0.5, 0.7, 0.5] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              </motion.div>
+
+              {/* Risk Badge */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.6, type: "spring", stiffness: 200 }}
+                className={`relative px-6 py-4 rounded-2xl border ${riskColors.border} bg-gradient-to-br ${riskColors.bg} backdrop-blur-sm`}
+              >
+                <div className="flex items-center space-x-3">
+                  <div className={`w-3 h-3 rounded-full ${riskColors.icon} animate-pulse`} />
+                  <div>
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide mb-0.5">Risk Level</div>
+                    <div className={`text-lg font-bold ${riskColors.text} capitalize`}>
+                      {analysisData.risk_assessment.risk_level}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
+
+          {/* Metadata Pills */}
+          {analysisData.metadata && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="mt-6 flex flex-wrap gap-2"
+            >
+              {analysisData.metadata.brand && (
+                <div className="px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-medium">
+                  {analysisData.metadata.brand}
+                </div>
+              )}
+              {analysisData.metadata.campaign_name && (
+                <div className="px-4 py-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-sm">
+                  {analysisData.metadata.campaign_name}
+                </div>
+              )}
+              {analysisData.metadata.platform && (
+                <div className="px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-sm">
+                  {analysisData.metadata.platform}
+                </div>
+              )}
+              {analysisData.metadata.region && (
+                <div className="px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-sm">
+                  {analysisData.metadata.region}
+                </div>
+              )}
+              {analysisData.metadata.year && analysisData.metadata.quarter && (
+                <div className="px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-sm">
+                  {analysisData.metadata.quarter} {analysisData.metadata.year}
+                </div>
+              )}
+            </motion.div>
+          )}
         </div>
       </motion.div>
 
@@ -142,348 +244,293 @@ export default function AnalysisDashboard({ analysisData, videoTitle, onDecision
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="glass shadow-lg rounded-2xl p-6 border border-border"
+          transition={{ delay: 0.1 }}
+          className="glass rounded-2xl p-6 border border-border"
         >
-          <div className="flex items-center mb-6">
-            <FileText className="w-6 h-6 text-blue-600 mr-3" />
-            <h3 className="text-xl font-semibold">Video Analysis Summary</h3>
-            <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Twelve Labs</span>
+          <div className="flex items-center space-x-3 mb-4">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+              <Eye className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold">Video Analysis Summary</h3>
+              <p className="text-xs text-muted-foreground">Powered by Twelve Labs AI</p>
+            </div>
           </div>
-
-          <div className="bg-muted/30 rounded-xl p-4 border border-border">
-            <p className="text-foreground leading-relaxed">{analysisData.twelve_labs_summary}</p>
-          </div>
+          <p className="text-foreground/90 leading-relaxed">{analysisData.twelve_labs_summary}</p>
         </motion.div>
       )}
 
-      {/* Metadata */}
-      {analysisData.metadata && (
+      {/* Quick Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {analysisData.creative_features?.scene_duration && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15 }}
+            className="glass rounded-xl p-4 border border-border"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold">{analysisData.creative_features.scene_duration}s</div>
+                <div className="text-xs text-muted-foreground flex items-center mt-1">
+                  <Clock className="w-3 h-3 mr-1" />
+                  Duration
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/10 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-purple-600" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {analysisData.creative_features?.faces_detected !== undefined && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2 }}
+            className="glass rounded-xl p-4 border border-border"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold">{analysisData.creative_features.faces_detected}</div>
+                <div className="text-xs text-muted-foreground flex items-center mt-1">
+                  <Users className="w-3 h-3 mr-1" />
+                  Faces
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/10 flex items-center justify-center">
+                <Users className="w-5 h-5 text-blue-600" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {analysisData.creative_features?.objects_present && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.25 }}
+            className="glass rounded-xl p-4 border border-border"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold">{analysisData.creative_features.objects_present.length}</div>
+                <div className="text-xs text-muted-foreground flex items-center mt-1">
+                  <Target className="w-3 h-3 mr-1" />
+                  Objects
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-green-600/10 flex items-center justify-center">
+                <Target className="w-5 h-5 text-green-600" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {analysisData.emotional_features?.emotion_intensity && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3 }}
+            className="glass rounded-xl p-4 border border-border"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-2xl font-bold">{analysisData.emotional_features.emotion_intensity}/10</div>
+                <div className="text-xs text-muted-foreground flex items-center mt-1">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Emotion
+                </div>
+              </div>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-pink-600/10 flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-pink-600" />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Success Prediction */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.06 }}
-          className="glass shadow-lg rounded-2xl p-6 border border-border"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.35 }}
+          className="glass rounded-2xl p-6 border border-border"
         >
-          <div className="flex items-center mb-6">
-            <FileText className="w-6 h-6 text-green-600 mr-3" />
-            <h3 className="text-xl font-semibold">Ad Metadata</h3>
-            <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Campaign Details</span>
+          <div className="flex items-center space-x-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold">Success Prediction</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {analysisData.metadata.brand && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Brand</div>
-                <div className="font-medium">{analysisData.metadata.brand}</div>
+          <div className="space-y-4">
+            <div>
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Key Strengths</h4>
+              <div className="space-y-2">
+                {analysisData.success_prediction.key_strengths.map((strength, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + index * 0.05 }}
+                    className="flex items-start space-x-2 text-sm"
+                  >
+                    <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                    <span>{strength}</span>
+                  </motion.div>
+                ))}
               </div>
-            )}
-            {analysisData.metadata.campaign_name && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Campaign</div>
-                <div className="font-medium">{analysisData.metadata.campaign_name}</div>
+            </div>
+
+            <div className="pt-3 border-t border-border">
+              <h4 className="text-sm font-medium text-muted-foreground mb-2">Performance Factors</h4>
+              <div className="space-y-2">
+                {analysisData.success_prediction.performance_factors.map((factor, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 + index * 0.05 }}
+                    className="flex items-start space-x-2 text-sm"
+                  >
+                    <Target className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <span>{factor}</span>
+                  </motion.div>
+                ))}
               </div>
-            )}
-            {analysisData.metadata.year && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Year</div>
-                <div className="font-medium">{analysisData.metadata.year}</div>
-              </div>
-            )}
-            {analysisData.metadata.quarter && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Quarter</div>
-                <div className="font-medium">{analysisData.metadata.quarter}</div>
-              </div>
-            )}
-            {analysisData.metadata.platform && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Platform</div>
-                <div className="font-medium">{analysisData.metadata.platform}</div>
-              </div>
-            )}
-            {analysisData.metadata.region && (
-              <div className="bg-muted/30 rounded-lg p-3">
-                <div className="text-xs text-muted-foreground uppercase tracking-wide">Region</div>
-                <div className="font-medium">{analysisData.metadata.region}</div>
-              </div>
-            )}
+            </div>
           </div>
         </motion.div>
-      )}
 
-      {/* Creative Features */}
-      {analysisData.creative_features && (
+        {/* Risk Assessment */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.07 }}
-          className="glass shadow-lg rounded-2xl p-6 border border-border"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.35 }}
+          className="glass rounded-2xl p-6 border border-border"
         >
-          <div className="flex items-center mb-6">
-            <BarChart3 className="w-6 h-6 text-purple-600 mr-3" />
-            <h3 className="text-xl font-semibold">Creative Features</h3>
-            <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Technical Analysis</span>
+          <div className="flex items-center space-x-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
+              <AlertTriangle className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold">Risk Assessment</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              {analysisData.creative_features.scene_id && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Scene ID</div>
-                  <div className="font-medium">{analysisData.creative_features.scene_id}</div>
+          <div className="space-y-4">
+            {analysisData.risk_assessment.potential_issues.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium text-red-600 mb-2">Potential Issues</h4>
+                <div className="space-y-2">
+                  {analysisData.risk_assessment.potential_issues.map((issue, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.4 + index * 0.05 }}
+                      className="flex items-start space-x-2 text-sm"
+                    >
+                      <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                      <span>{issue}</span>
+                    </motion.div>
+                  ))}
                 </div>
-              )}
-              {analysisData.creative_features.scene_duration && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Scene Duration</div>
-                  <div className="font-medium">{analysisData.creative_features.scene_duration}s</div>
-                </div>
-              )}
-              {analysisData.creative_features.faces_detected !== undefined && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Faces Detected</div>
-                  <div className="font-medium">{analysisData.creative_features.faces_detected}</div>
-                </div>
-              )}
-              {analysisData.creative_features.brand_logo_presence !== undefined && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Brand Logo Present</div>
-                  <div className="font-medium">{analysisData.creative_features.brand_logo_presence ? 'Yes' : 'No'}</div>
-                </div>
-              )}
-              {analysisData.creative_features.music_tempo && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Music Tempo</div>
-                  <div className="font-medium capitalize">{analysisData.creative_features.music_tempo}</div>
-                </div>
-              )}
-              {analysisData.creative_features.music_mode && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Music Mode</div>
-                  <div className="font-medium capitalize">{analysisData.creative_features.music_mode}</div>
-                </div>
-              )}
-              {analysisData.creative_features.editing_pace && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Editing Pace</div>
-                  <div className="font-medium">{analysisData.creative_features.editing_pace}/10</div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="space-y-4">
-              {analysisData.creative_features.objects_present && analysisData.creative_features.objects_present.length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Objects Present</div>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.creative_features.objects_present.map((obj, index) => (
-                      <span key={index} className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                        {obj}
-                      </span>
-                    ))}
-                  </div>
+            {analysisData.risk_assessment.mitigation_suggestions.length > 0 && (
+              <div className="pt-3 border-t border-border">
+                <h4 className="text-sm font-medium text-green-600 mb-2">Mitigation Strategies</h4>
+                <div className="space-y-2">
+                  {analysisData.risk_assessment.mitigation_suggestions.map((suggestion, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.05 }}
+                      className="flex items-start space-x-2 text-sm"
+                    >
+                      <Lightbulb className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                      <span>{suggestion}</span>
+                    </motion.div>
+                  ))}
                 </div>
-              )}
-              {analysisData.creative_features.text_on_screen && analysisData.creative_features.text_on_screen.length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Text on Screen</div>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.creative_features.text_on_screen.map((text, index) => (
-                      <span key={index} className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                        {text}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {analysisData.creative_features.audio_elements && analysisData.creative_features.audio_elements.length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Audio Elements</div>
-                  <div className="flex flex-wrap gap-2">
-                    {analysisData.creative_features.audio_elements.map((audio, index) => (
-                      <span key={index} className="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">
-                        {audio}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {analysisData.creative_features.color_palette_dominant && analysisData.creative_features.color_palette_dominant.length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Dominant Colors</div>
-                  <div className="flex gap-2">
-                    {analysisData.creative_features.color_palette_dominant.map((color, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <div
-                          className="w-4 h-4 rounded border"
-                          style={{ backgroundColor: color.toLowerCase() }}
-                        ></div>
-                        <span className="text-xs capitalize">{color}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </motion.div>
-      )}
+      </div>
 
-      {/* Emotional Features */}
-      {analysisData.emotional_features && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-          className="glass shadow-lg rounded-2xl p-6 border border-border"
-        >
-          <div className="flex items-center mb-6">
-            <Users className="w-6 h-6 text-pink-600 mr-3" />
-            <h3 className="text-xl font-semibold">Emotional Features</h3>
-            <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Sentiment Analysis</span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              {analysisData.emotional_features.emotion_primary && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Primary Emotion</div>
-                  <div className="font-medium capitalize">{analysisData.emotional_features.emotion_primary}</div>
-                </div>
-              )}
-              {analysisData.emotional_features.emotion_intensity && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Emotion Intensity</div>
-                  <div className="font-medium">{analysisData.emotional_features.emotion_intensity}/10</div>
-                </div>
-              )}
-              {analysisData.emotional_features.tone_of_voice && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Tone of Voice</div>
-                  <div className="font-medium capitalize">{analysisData.emotional_features.tone_of_voice}</div>
-                </div>
-              )}
-              {analysisData.emotional_features.audience_perceived_sentiment && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Audience Sentiment</div>
-                  <div className="font-medium capitalize">{analysisData.emotional_features.audience_perceived_sentiment}</div>
-                </div>
-              )}
-              {analysisData.emotional_features.cultural_sensitivity_flag !== undefined && (
-                <div>
-                  <div className="text-sm text-muted-foreground">Cultural Sensitivity Flag</div>
-                  <div className={`font-medium ${analysisData.emotional_features.cultural_sensitivity_flag ? 'text-red-600' : 'text-green-600'}`}>
-                    {analysisData.emotional_features.cultural_sensitivity_flag ? '⚠️ Flagged' : '✓ Clear'}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-4">
-              {analysisData.emotional_features.emotional_arc_timeline && analysisData.emotional_features.emotional_arc_timeline.length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Emotional Arc Timeline</div>
-                  <div className="space-y-1">
-                    {analysisData.emotional_features.emotional_arc_timeline.map((arc, index) => (
-                      <div key={index} className="text-xs bg-muted/30 px-2 py-1 rounded">
-                        {arc}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {analysisData.emotional_features.facial_expression_emotions && Object.keys(analysisData.emotional_features.facial_expression_emotions).length > 0 && (
-                <div>
-                  <div className="text-sm text-muted-foreground mb-2">Facial Expression Emotions</div>
-                  <div className="space-y-2">
-                    {Object.entries(analysisData.emotional_features.facial_expression_emotions).map(([emotion, intensity]) => (
-                      <div key={emotion} className="flex items-center justify-between">
-                        <span className="text-xs capitalize">{emotion}</span>
-                        <div className="flex items-center gap-1">
-                          <div className="w-16 h-2 bg-muted rounded">
-                            <div
-                              className="h-full bg-pink-500 rounded"
-                              style={{ width: `${(intensity as number) * 10}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs text-muted-foreground">{intensity}/10</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* Creative Analysis Charts */}
+      {/* Visualizations */}
       {analysisData.creative_features && analysisData.emotional_features && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.09 }}
-          className="glass shadow-lg rounded-2xl p-6 border border-border"
+          transition={{ delay: 0.4 }}
+          className="glass rounded-2xl p-6 border border-border"
         >
-          <div className="flex items-center mb-6">
-            <BarChart3 className="w-6 h-6 text-indigo-600 mr-3" />
-            <h3 className="text-xl font-semibold">Creative Analysis Metrics</h3>
-            <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Visualization</span>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold">Creative Insights</h3>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Emotion Intensity Chart */}
-            <div className="bg-muted/30 rounded-xl p-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Emotional Profile Radar */}
+            <div className="bg-muted/20 rounded-xl p-5">
               <h4 className="font-medium mb-4 text-center">Emotional Profile</h4>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={250}>
                 <RadarChart data={[
-                  { subject: 'Primary Emotion', A: analysisData.emotional_features.emotion_intensity || 0, fullMark: 10 },
-                  { subject: 'Sentiment Score', A: analysisData.emotional_features.audience_perceived_sentiment === 'positive' ? 8 :
-                                                   analysisData.emotional_features.audience_perceived_sentiment === 'neutral' ? 5 : 3, fullMark: 10 },
-                  { subject: 'Cultural Safety', A: analysisData.emotional_features.cultural_sensitivity_flag ? 2 : 8, fullMark: 10 },
-                  { subject: 'Emotional Arc', A: (analysisData.emotional_features.emotional_arc_timeline?.length || 0) * 2, fullMark: 10 }
+                  { subject: 'Emotion', value: analysisData.emotional_features.emotion_intensity || 0 },
+                  { subject: 'Sentiment', value: analysisData.emotional_features.audience_perceived_sentiment === 'positive' ? 9 : analysisData.emotional_features.audience_perceived_sentiment === 'neutral' ? 5 : 3 },
+                  { subject: 'Safety', value: analysisData.emotional_features.cultural_sensitivity_flag ? 3 : 9 },
+                  { subject: 'Arc', value: (analysisData.emotional_features.emotional_arc_timeline?.length || 0) * 3 }
                 ]}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                  <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fontSize: 8 }} />
-                  <Radar name="Score" dataKey="A" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                  <Tooltip />
+                  <PolarGrid stroke="#374151" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#9ca3af', fontSize: 12 }} />
+                  <PolarRadiusAxis angle={90} domain={[0, 10]} tick={{ fill: '#9ca3af', fontSize: 10 }} />
+                  <Radar name="Score" dataKey="value" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.5} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'rgb(var(--background))',
+                      border: '1px solid rgb(var(--border))',
+                      borderRadius: '12px'
+                    }}
+                  />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
 
-            {/* Creative Elements Breakdown */}
-            <div className="bg-muted/30 rounded-xl p-4">
+            {/* Creative Elements Bar Chart */}
+            <div className="bg-muted/20 rounded-xl p-5">
               <h4 className="font-medium mb-4 text-center">Creative Elements</h4>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={[
-                  { name: 'Faces', value: analysisData.creative_features.faces_detected || 0, color: '#3b82f6' },
-                  { name: 'Objects', value: (analysisData.creative_features.objects_present?.length || 0), color: '#10b981' },
-                  { name: 'Text', value: (analysisData.creative_features.text_on_screen?.length || 0), color: '#f59e0b' },
-                  { name: 'Audio', value: (analysisData.creative_features.audio_elements?.length || 0), color: '#ef4444' }
-                ]} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.2} />
-                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={10} />
-                  <YAxis stroke="#9ca3af" fontSize={10} />
+                  { name: 'Faces', value: analysisData.creative_features.faces_detected || 0 },
+                  { name: 'Objects', value: analysisData.creative_features.objects_present?.length || 0 },
+                  { name: 'Text', value: analysisData.creative_features.text_on_screen?.length || 0 },
+                  { name: 'Audio', value: analysisData.creative_features.audio_elements?.length || 0 }
+                ]}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.3} />
+                  <XAxis dataKey="name" stroke="#9ca3af" fontSize={12} />
+                  <YAxis stroke="#9ca3af" fontSize={12} />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: '#ffffff',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '8px',
-                      color: '#111827',
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                      padding: '8px 12px',
-                      fontSize: '12px'
+                      backgroundColor: 'rgb(var(--background))',
+                      border: '1px solid rgb(var(--border))',
+                      borderRadius: '12px'
                     }}
                   />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="value" radius={[8, 8, 0, 0]}>
                     {[
-                      { name: 'Faces', value: analysisData.creative_features.faces_detected || 0, color: '#3b82f6' },
-                      { name: 'Objects', value: (analysisData.creative_features.objects_present?.length || 0), color: '#10b981' },
-                      { name: 'Text', value: (analysisData.creative_features.text_on_screen?.length || 0), color: '#f59e0b' },
-                      { name: 'Audio', value: (analysisData.creative_features.audio_elements?.length || 0), color: '#ef4444' }
+                      { color: '#3b82f6' },
+                      { color: '#10b981' },
+                      { color: '#f59e0b' },
+                      { color: '#ef4444' }
                     ].map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
@@ -491,333 +538,276 @@ export default function AnalysisDashboard({ analysisData, videoTitle, onDecision
                 </BarChart>
               </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* Color Palette Visualization */}
-            {analysisData.creative_features.color_palette_dominant && analysisData.creative_features.color_palette_dominant.length > 0 && (
-              <div className="bg-muted/30 rounded-xl p-4">
-                <h4 className="font-medium mb-4 text-center">Dominant Colors</h4>
-                <div className="flex justify-center space-x-4">
-                  {analysisData.creative_features.color_palette_dominant.map((color, index) => (
-                    <div key={index} className="text-center">
-                      <div
-                        className="w-12 h-12 rounded-lg border-2 border-white shadow-md mx-auto mb-2"
-                        style={{ backgroundColor: color.toLowerCase() }}
-                      ></div>
-                      <span className="text-xs text-muted-foreground capitalize">{color}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Technical Metrics */}
-            <div className="bg-muted/30 rounded-xl p-4">
-              <h4 className="font-medium mb-4 text-center">Technical Metrics</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Scene Duration</span>
-                  <span className="font-medium">{analysisData.creative_features.scene_duration || 0}s</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Editing Pace</span>
-                  <div className="flex items-center gap-2">
-                    <div className="w-20 h-2 bg-muted rounded">
-                      <div
-                        className="h-full bg-blue-500 rounded"
-                        style={{ width: `${((analysisData.creative_features.editing_pace || 0) / 10) * 100}%` }}
-                      ></div>
-                    </div>
-                    <span className="text-xs font-medium">{analysisData.creative_features.editing_pace || 0}/10</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Logo Presence</span>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${analysisData.creative_features.brand_logo_presence ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    {analysisData.creative_features.brand_logo_presence ? 'Present' : 'Not Present'}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Music Tempo</span>
-                  <span className="font-medium capitalize">{analysisData.creative_features.music_tempo || 'N/A'}</span>
-                </div>
+          {/* Color Palette */}
+          {analysisData.creative_features.color_palette_dominant && analysisData.creative_features.color_palette_dominant.length > 0 && (
+            <div className="mt-6 bg-muted/20 rounded-xl p-5">
+              <h4 className="font-medium mb-4 text-center">Dominant Color Palette</h4>
+              <div className="flex justify-center items-center space-x-4">
+                {analysisData.creative_features.color_palette_dominant.map((color, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ delay: 0.5 + index * 0.1, type: "spring" }}
+                    className="text-center"
+                  >
+                    <div
+                      className="w-16 h-16 rounded-2xl shadow-lg border-2 border-white/20"
+                      style={{ backgroundColor: color.toLowerCase() }}
+                    />
+                    <span className="text-xs text-muted-foreground mt-2 block font-mono">{color}</span>
+                  </motion.div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
         </motion.div>
       )}
 
-      {/* Success Prediction */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
-      >
-        <div className="flex items-center mb-6">
-          <TrendingUp className="w-6 h-6 text-green-600 mr-3" />
-          <h3 className="text-xl font-semibold">Success Prediction</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium mb-3">Key Strengths</h4>
-            <ul className="space-y-2">
-              {analysisData.success_prediction.key_strengths.map((strength, index) => (
-                <li key={index} className="flex items-start">
-                  <CheckCircle className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{strength}</span>
-                </li>
-              ))}
-            </ul>
+      {/* Creative Analysis & Competitive Intelligence */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Creative Analysis */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.45 }}
+          className="glass rounded-2xl p-6 border border-border"
+        >
+          <div className="flex items-center space-x-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold">Creative Analysis</h3>
           </div>
 
-          <div>
-            <h4 className="font-medium mb-3">Performance Factors</h4>
-            <ul className="space-y-2">
-              {analysisData.success_prediction.performance_factors.map((factor, index) => (
-                <li key={index} className="flex items-start">
-                  <Target className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{factor}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-muted/30 rounded-xl p-4">
-            <h4 className="font-medium mb-2">Audience Fit</h4>
-            <p className="text-sm text-muted-foreground">{analysisData.success_prediction.audience_fit}</p>
-          </div>
-          <div className="bg-muted/30 rounded-xl p-4">
-            <h4 className="font-medium mb-2">Competitive Advantage</h4>
-            <p className="text-sm text-muted-foreground">{analysisData.success_prediction.competitive_advantage}</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Risk Assessment */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
-      >
-        <div className="flex items-center mb-6">
-          <AlertTriangle className="w-6 h-6 text-orange-600 mr-3" />
-          <h3 className="text-xl font-semibold">Risk Assessment</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium mb-3 text-red-700">Potential Issues</h4>
-            <ul className="space-y-2">
-              {analysisData.risk_assessment.potential_issues.map((issue, index) => (
-                <li key={index} className="flex items-start">
-                  <XCircle className="w-4 h-4 text-red-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{issue}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-medium mb-3 text-orange-700">Failure Risks</h4>
-            <ul className="space-y-2">
-              {analysisData.risk_assessment.failure_risks.map((risk, index) => (
-                <li key={index} className="flex items-start">
-                  <AlertTriangle className="w-4 h-4 text-orange-500 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{risk}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="mt-6">
-          <h4 className="font-medium mb-3 text-green-700">Mitigation Suggestions</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {analysisData.risk_assessment.mitigation_suggestions.map((suggestion, index) => (
-              <div key={index} className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <div className="flex items-start">
-                  <Lightbulb className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm text-green-800">{suggestion}</span>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(analysisData.creative_analysis).map(([key, value], index) => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + index * 0.05 }}
+                className="bg-muted/20 rounded-xl p-4"
+              >
+                <h4 className="text-xs font-medium text-muted-foreground mb-1 capitalize">
+                  {key.replace(/_/g, ' ')}
+                </h4>
+                <p className="text-sm font-medium">{value}</p>
+              </motion.div>
             ))}
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
 
-      {/* Creative Analysis */}
+        {/* Competitive Intelligence */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          className="glass rounded-2xl p-6 border border-border"
+        >
+          <div className="flex items-center space-x-3 mb-5">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold">Competitive Intelligence</h3>
+          </div>
+
+          <div className="space-y-3">
+            {Object.entries(analysisData.competitive_intelligence).map(([key, value], index) => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.55 + index * 0.05 }}
+                className="bg-muted/20 rounded-xl p-3"
+              >
+                <h4 className="text-xs font-medium text-muted-foreground mb-1 capitalize">
+                  {key.replace(/_/g, ' ')}
+                </h4>
+                <p className="text-sm">{value}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Personalized Recommendations & Decision */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
+        transition={{ delay: 0.55 }}
+        className="glass rounded-2xl p-6 border border-border"
       >
-        <div className="flex items-center mb-6">
-          <BarChart3 className="w-6 h-6 text-purple-600 mr-3" />
-          <h3 className="text-xl font-semibold">Creative Analysis</h3>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Storytelling Effectiveness</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.creative_analysis.storytelling_effectiveness}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Visual Impact</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.creative_analysis.visual_impact}</p>
-            </div>
+        <div className="flex items-center space-x-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+            <Lightbulb className="w-5 h-5 text-white" />
           </div>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Emotional Resonance</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.creative_analysis.emotional_resonance}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Technical Quality</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.creative_analysis.technical_quality}</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Competitive Intelligence */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
-      >
-        <div className="flex items-center mb-6">
-          <Users className="w-6 h-6 text-blue-600 mr-3" />
-          <h3 className="text-xl font-semibold">Competitive Intelligence</h3>
+          <h3 className="text-lg font-semibold">Personalized Recommendations</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Market Positioning</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.competitive_intelligence.market_positioning}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Benchmark Comparison</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.competitive_intelligence.benchmark_comparison}</p>
-            </div>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium mb-2">Differentiation Opportunities</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.competitive_intelligence.differentiation_opportunities}</p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Trend Alignment</h4>
-              <p className="text-sm text-muted-foreground">{analysisData.competitive_intelligence.trend_alignment}</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
+         {/* AI Recommendation */}
+         <div className={`mb-6 p-5 rounded-2xl border-2 ${
+           analysisData.personalized_recommendations.decision_suggestion === 'approve'
+             ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
+             : analysisData.personalized_recommendations.decision_suggestion === 'reject'
+             ? 'bg-gradient-to-br from-red-500/10 to-rose-500/5 border-red-500/30'
+             : 'bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border-yellow-500/30'
+         }`}>
+           <div className="flex items-center space-x-3">
+             {analysisData.personalized_recommendations.decision_suggestion === 'approve' && (
+               <CheckCircle className="w-6 h-6 text-green-600" />
+             )}
+             {analysisData.personalized_recommendations.decision_suggestion === 'reject' && (
+               <XCircle className="w-6 h-6 text-red-600" />
+             )}
+             {analysisData.personalized_recommendations.decision_suggestion === 'suspend' && (
+               <AlertTriangle className="w-6 h-6 text-yellow-600" />
+             )}
+             <div>
+               <div className="text-sm text-muted-foreground">AI Recommendation</div>
+               <div className={`text-lg font-bold capitalize ${
+                 analysisData.personalized_recommendations.decision_suggestion === 'approve'
+                   ? 'text-green-600'
+                   : analysisData.personalized_recommendations.decision_suggestion === 'reject'
+                   ? 'text-red-600'
+                   : 'text-yellow-600'
+               }`}>
+                 {analysisData.personalized_recommendations.decision_suggestion}
+               </div>
+             </div>
+           </div>
+         </div>
 
-      {/* Personalized Recommendations */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="glass shadow-lg rounded-2xl p-6 border border-border"
-      >
-        <div className="flex items-center mb-6">
-          <Lightbulb className="w-6 h-6 text-indigo-600 mr-3" />
-          <h3 className="text-xl font-semibold">Personalized Recommendations</h3>
-        </div>
+         {/* Final Decision */}
+         {finalDecision && (
+           <div className={`mb-6 p-5 rounded-2xl border-2 ${
+             finalDecision === 'approve'
+               ? 'bg-gradient-to-br from-green-500/10 to-emerald-500/5 border-green-500/30'
+               : finalDecision === 'reject'
+               ? 'bg-gradient-to-br from-red-500/10 to-rose-500/5 border-red-500/30'
+               : 'bg-gradient-to-br from-yellow-500/10 to-amber-500/5 border-yellow-500/30'
+           }`}>
+             <div className="flex items-center space-x-3">
+               {finalDecision === 'approve' && (
+                 <CheckCircle className="w-6 h-6 text-green-600" />
+               )}
+               {finalDecision === 'reject' && (
+                 <XCircle className="w-6 h-6 text-red-600" />
+               )}
+               {finalDecision === 'suspend' && (
+                 <AlertTriangle className="w-6 h-6 text-yellow-600" />
+               )}
+               <div>
+                 <div className="text-sm text-muted-foreground">Final Decision</div>
+                 <div className={`text-lg font-bold capitalize ${
+                   finalDecision === 'approve'
+                     ? 'text-green-600'
+                     : finalDecision === 'reject'
+                     ? 'text-red-600'
+                     : 'text-yellow-600'
+                 }`}>
+                   {finalDecision}
+                 </div>
+                 <div className="text-sm text-muted-foreground mt-1">
+                   {finalDecisionComments || 'No comments added'}
+                 </div>
+               </div>
+             </div>
+           </div>
+         )}
 
-        {/* Decision Suggestion */}
-        <div className={`mb-6 p-4 rounded-xl border ${getDecisionColor(analysisData.personalized_recommendations.decision_suggestion)}`}>
-          <div className="flex items-center">
-            {getDecisionIcon(analysisData.personalized_recommendations.decision_suggestion)}
-            <span className="ml-2 font-medium capitalize">
-              Recommended: {analysisData.personalized_recommendations.decision_suggestion}
-            </span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <h4 className="font-medium mb-3">Action Items</h4>
-            <ul className="space-y-2">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">Action Items</h4>
+            <div className="space-y-2">
               {analysisData.personalized_recommendations.action_items.map((item, index) => (
-                <li key={index} className="flex items-start">
-                  <CheckCircle className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{item}</span>
-                </li>
+                <div key={index} className="flex items-start space-x-2 text-sm">
+                  <CheckCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <span>{item}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
 
           <div>
-            <h4 className="font-medium mb-3">Optimization Priorities</h4>
-            <ul className="space-y-2">
+            <h4 className="text-sm font-medium text-muted-foreground mb-3">Optimization Priorities</h4>
+            <div className="space-y-2">
               {analysisData.personalized_recommendations.optimization_priorities.map((priority, index) => (
-                <li key={index} className="flex items-start">
-                  <Target className="w-4 h-4 text-purple-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <span className="text-sm">{priority}</span>
-                </li>
+                <div key={index} className="flex items-start space-x-2 text-sm">
+                  <Target className="w-4 h-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                  <span>{priority}</span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
 
-        <div className="mt-6 space-y-4">
-          <div className="bg-muted/30 rounded-xl p-4">
-            <h4 className="font-medium mb-2">User-Specific Insights</h4>
-            <p className="text-sm text-muted-foreground">{analysisData.personalized_recommendations.user_specific_insights}</p>
-          </div>
-
-          {analysisData.personalized_recommendations.performance_based_rationale && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-4">
-              <h4 className="font-medium mb-2 text-blue-800 dark:text-blue-200">Performance-Based Rationale</h4>
-              <p className="text-sm text-blue-700 dark:text-blue-300">{analysisData.personalized_recommendations.performance_based_rationale}</p>
+        {/* Additional Insights */}
+        <div className="space-y-3 mb-6">
+          {analysisData.personalized_recommendations.user_specific_insights && (
+            <div className="bg-muted/20 rounded-xl p-4">
+              <h4 className="text-sm font-medium mb-2">User-Specific Insights</h4>
+              <p className="text-sm text-muted-foreground">{analysisData.personalized_recommendations.user_specific_insights}</p>
             </div>
           )}
 
           {analysisData.personalized_recommendations.expected_roi_impact && (
-            <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-xl p-4">
-              <h4 className="font-medium mb-2 text-green-800 dark:text-green-200">Expected ROI Impact</h4>
-              <p className="text-sm text-green-700 dark:text-green-300">{analysisData.personalized_recommendations.expected_roi_impact}</p>
+            <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4">
+              <h4 className="text-sm font-medium text-green-700 mb-2">Expected ROI Impact</h4>
+              <p className="text-sm text-green-600">{analysisData.personalized_recommendations.expected_roi_impact}</p>
             </div>
           )}
 
           {analysisData.personalized_recommendations.competitive_benchmarking && (
-            <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-4">
-              <h4 className="font-medium mb-2 text-purple-800 dark:text-purple-200">Competitive Benchmarking</h4>
-              <p className="text-sm text-purple-700 dark:text-purple-300">{analysisData.personalized_recommendations.competitive_benchmarking}</p>
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-xl p-4">
+              <h4 className="text-sm font-medium text-purple-700 mb-2">Competitive Benchmarking</h4>
+              <p className="text-sm text-purple-600">{analysisData.personalized_recommendations.competitive_benchmarking}</p>
             </div>
           )}
         </div>
 
         {/* Decision Buttons */}
         {onDecision && (
-          <div className="mt-8 flex justify-end space-x-4">
-            <button
-              onClick={() => onDecision('reject')}
-              className="px-6 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 transition-colors"
-            >
-              Reject
-            </button>
-            <button
-              onClick={() => onDecision('suspend')}
-              className="px-6 py-2 rounded-lg border border-yellow-200 text-yellow-700 hover:bg-yellow-50 transition-colors"
-            >
-              Suspend
-            </button>
-            <button
-              onClick={() => onDecision('approve')}
-              className="px-6 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
-            >
-              Approve
-            </button>
+          <div className="border-t border-border pt-6">
+            <h4 className="text-sm font-medium mb-3">Make Your Decision</h4>
+            <textarea
+              value={decisionComments}
+              onChange={(e) => setDecisionComments(e.target.value)}
+              placeholder="Add comments or notes (optional)..."
+              className="w-full px-4 py-3 rounded-xl border border-border bg-background/50 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none mb-4"
+              rows={3}
+            />
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onDecision('reject', decisionComments)}
+                className="flex-1 px-6 py-3 rounded-xl border-2 border-red-200 text-red-700 font-medium hover:bg-red-50 transition-all flex items-center justify-center space-x-2"
+              >
+                <XCircle className="w-5 h-5" />
+                <span>Reject</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onDecision('suspend', decisionComments)}
+                className="flex-1 px-6 py-3 rounded-xl border-2 border-yellow-200 text-yellow-700 font-medium hover:bg-yellow-50 transition-all flex items-center justify-center space-x-2"
+              >
+                <AlertTriangle className="w-5 h-5" />
+                <span>Suspend</span>
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onDecision('approve', decisionComments)}
+                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-green-500/30"
+              >
+                <CheckCircle className="w-5 h-5" />
+                <span>Approve</span>
+              </motion.button>
+            </div>
           </div>
         )}
       </motion.div>

@@ -7,15 +7,33 @@ import { TwelveLabs } from 'twelvelabs-js'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') || 'live'
+    const status = searchParams.get('status')
+    const userId = searchParams.get('userId')
+    const view = searchParams.get('view') // 'gallery' or 'list'
 
     const client = await clientPromise
     const db = client.db()
 
+    // Build query filter
+    const filter: Record<string, unknown> = {}
+
+    // For gallery view, show advertisements with analysis results
+    if (view === 'gallery') {
+      filter.analysis_results = { $exists: true, $ne: null }
+    }
+
+    if (status) {
+      filter.status = status
+    }
+
+    if (userId) {
+      filter.user_id = new ObjectId(userId)
+    }
+
     const advertisements = await db
       .collection('advertisements')
-      .find({ status })
-      .sort({ updated_at: -1 })
+      .find(filter)
+      .sort({ analyzed_at: -1, updated_at: -1 })
       .toArray()
 
     return NextResponse.json(advertisements, { status: 200 })
@@ -64,7 +82,9 @@ export async function POST(request: NextRequest) {
     }
 
     let task
+
     try {
+      // Create the upload task
       if (videoFile) {
         // Upload file - pass the File object directly
         task = await (client as unknown as { tasks: { create: (params: { indexId: string; videoFile: File; enableVideoStream: boolean }) => Promise<{ id: string; videoId: string }> } }).tasks.create({
@@ -91,6 +111,61 @@ export async function POST(request: NextRequest) {
     if (!task) {
       return NextResponse.json(
         { error: 'Failed to create upload task' },
+        { status: 500 }
+      )
+    }
+
+    // Wait for video indexing to complete using SDK's waitForDone method
+    console.log(`🎬 Starting video indexing for task ${task.id}...`)
+
+    try {
+      const completedTask = await (client as unknown as {
+        tasks: {
+          waitForDone: (taskId: string, options?: {
+            sleepInterval?: number;
+            callback?: (task: { status: string; videoId?: string }) => void
+          }) => Promise<{ status: string; videoId: string; id: string }>
+        }
+      }).tasks.waitForDone(task.id, {
+        sleepInterval: 5, // Check every 5 seconds
+        callback: (currentTask) => {
+          // Track indexing progress for logging
+          switch (currentTask.status) {
+            case 'uploading':
+              console.log('📤 Uploading video...')
+              break
+            case 'validating':
+              console.log('✓ Validating video...')
+              break
+            case 'pending':
+              console.log('⏳ Pending indexing...')
+              break
+            case 'queued':
+              console.log('📋 Queued for processing...')
+              break
+            case 'indexing':
+              console.log('🔍 Indexing video...')
+              break
+            default:
+              console.log(`📊 Status: ${currentTask.status}`)
+          }
+        }
+      })
+
+      // Check if indexing was successful
+      if (completedTask.status !== 'ready') {
+        throw new Error(`Video indexing failed with status: ${completedTask.status}`)
+      }
+
+      console.log(`✅ Video successfully indexed with ID: ${completedTask.videoId}`)
+
+      // Update task object with completed status
+      task = completedTask
+
+    } catch (indexingError) {
+      console.error('❌ Video indexing error:', indexingError)
+      return NextResponse.json(
+        { error: 'Video indexing failed. Please try again or contact support.' },
         { status: 500 }
       )
     }

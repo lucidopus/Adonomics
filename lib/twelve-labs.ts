@@ -68,23 +68,40 @@ export async function searchSimilarVideos(
     })
 
     // Perform the search using the SDK
-     
-    const searchResults = await (client as any).search.create({
+
+    const searchResults = await client.search.query({
       indexId: indexId || process.env.TWELVE_LABS_INDEX_ID!,
       queryText: query,
       searchOptions: ["visual", "audio"]
     })
 
+    // Collect all search results (the response is a Page that implements AsyncIterable)
+    const allResults: any[] = []
+    for await (const item of searchResults) {
+      if (item.clips && item.id) {
+        // Grouped by video - take the first clip for video-level info
+        const firstClip = item.clips[0]
+        allResults.push({
+          ...firstClip,
+          id: item.id,
+          userMetadata: item.userMetadata
+        })
+      } else {
+        // Individual clips
+        allResults.push(item)
+      }
+    }
+
     // Transform the response to our interface
-    const transformedResults: VideoSearchResult[] = searchResults.data.map((result: any) => ({
-      id: result.id || result.videoId,
-      title: result.title || result.metadata?.title,
-      description: result.description || result.metadata?.description,
-      thumbnail_url: result.thumbnailUrl || result.thumbnail_url,
-      duration: result.duration || result.metadata?.duration,
-      created_at: result.createdAt || result.created_at,
+    const transformedResults: VideoSearchResult[] = allResults.map((result: any) => ({
+      id: result.videoId,
+      title: result.userMetadata?.title || result.transcription?.substring(0, 100) || 'Video result',
+      description: result.transcription || result.userMetadata?.description || '',
+      thumbnail_url: result.thumbnailUrl,
+      duration: result.end - result.start,
+      created_at: new Date().toISOString(), // Not available in search results
       score: result.score,
-      metadata: result.metadata
+      metadata: result.userMetadata
     }))
 
     return {
@@ -137,21 +154,38 @@ export async function searchSimilarVideosById(
 
     // Search by video ID - using text search with video ID as query
     // Note: This may not find visual similarities, but searches for videos containing this ID in metadata
-    const searchResults = await (client as any).search.create({
+    const searchResults = await client.search.query({
       indexId: indexId || process.env.TWELVE_LABS_INDEX_ID!,
       queryText: videoId,
       searchOptions: ["visual", "audio"]
     })
 
-    const transformedResults: VideoSearchResult[] = searchResults.data.map((result: any) => ({
-      id: result.id || result.videoId,
-      title: result.title || result.metadata?.title,
-      description: result.description || result.metadata?.description,
-      thumbnail_url: result.thumbnailUrl || result.thumbnail_url,
-      duration: result.duration || result.metadata?.duration,
-      created_at: result.createdAt || result.created_at,
+    // Collect all search results
+    const allResults: any[] = []
+    for await (const item of searchResults) {
+      if (item.clips && item.id) {
+        // Grouped by video - take the first clip for video-level info
+        const firstClip = item.clips[0]
+        allResults.push({
+          ...firstClip,
+          id: item.id,
+          userMetadata: item.userMetadata
+        })
+      } else {
+        // Individual clips
+        allResults.push(item)
+      }
+    }
+
+    const transformedResults: VideoSearchResult[] = allResults.map((result: any) => ({
+      id: result.videoId,
+      title: result.userMetadata?.title || result.transcription?.substring(0, 100) || 'Video result',
+      description: result.transcription || result.userMetadata?.description || '',
+      thumbnail_url: result.thumbnailUrl,
+      duration: result.end - result.start,
+      created_at: new Date().toISOString(),
       score: result.score,
-      metadata: result.metadata
+      metadata: result.userMetadata
     }))
 
     return {
@@ -200,7 +234,7 @@ export async function analyzeVideo(
 
     // Get comprehensive summary using Twelve Labs API
     console.log('📝 Generating video summary...')
-    const summaryResult = await (client as any).summarize({
+    const summaryResult = await client.summarize({
       videoId,
       type: 'summary',
       prompt: 'Create a detailed summary of this advertisement video, including the product/service being advertised, key messaging, target audience, and overall creative approach.'
@@ -208,14 +242,14 @@ export async function analyzeVideo(
 
     // Get gist information (titles, topics, hashtags)
     console.log('🏷️ Extracting video gist...')
-    const gistResult = await (client as any).gist({
+    const gistResult = await client.gist({
       videoId,
       types: ['title', 'topic', 'hashtag']
     })
 
     // Get detailed scene-by-scene analysis
     console.log('🎭 Analyzing scenes and creative elements...')
-    const sceneAnalysis = await (client as any).analyze({
+    const sceneAnalysis = await client.analyze({
       videoId,
       prompt: `Analyze this advertisement scene by scene. For each major scene, describe:
       - What happens visually
@@ -228,7 +262,7 @@ export async function analyzeVideo(
 
     // Get creative strengths and weaknesses
     console.log('💪 Analyzing creative strengths and weaknesses...')
-    const strengthsAnalysis = await (client as any).analyze({
+    const strengthsAnalysis = await client.analyze({
       videoId,
       prompt: `Evaluate the creative strengths and weaknesses of this advertisement. Consider:
       - Storytelling effectiveness
@@ -242,7 +276,7 @@ export async function analyzeVideo(
 
     // Get target audience insights
     console.log('👥 Analyzing target audience...')
-    const audienceAnalysis = await (client as any).analyze({
+    const audienceAnalysis = await client.analyze({
       videoId,
       prompt: `Based on the content, visuals, and messaging in this advertisement, identify:
       - Primary target audience demographics (age, gender, interests, profession)
@@ -253,22 +287,28 @@ export async function analyzeVideo(
     })
 
     // Extract themes from topics
-    const themes = gistResult?.topics || gistResult?.data?.topics || []
+    const themes = gistResult?.topics || []
 
     // Parse scene analysis to extract structured scene data
-    const scenes = parseSceneAnalysis(sceneAnalysis?.data || sceneAnalysis?.result || '')
+    const scenes = parseSceneAnalysis(sceneAnalysis?.data || '')
 
     // Parse strengths and weaknesses
-    const { strengths, weaknesses } = parseStrengthsWeaknesses(strengthsAnalysis?.data || strengthsAnalysis?.result || '')
+    const { strengths, weaknesses } = parseStrengthsWeaknesses(strengthsAnalysis?.data || '')
 
     // Extract target audience
-    const targetAudience = audienceAnalysis?.data || audienceAnalysis?.result || 'General audience'
+    const targetAudience = audienceAnalysis?.data || 'General audience'
+
+    // Get summary text based on response type
+    let summaryText = 'Analysis summary not available'
+    if ('summary' in summaryResult && summaryResult.summary) {
+      summaryText = summaryResult.summary
+    }
 
     const analysisResult = {
       task_id: `analysis_${videoId}_${Date.now()}`,
       video_id: videoId,
       analysis_data: {
-        summary: summaryResult?.data || summaryResult?.result || summaryResult?.summary || 'Analysis summary not available',
+        summary: summaryText,
         scenes,
         themes,
         target_audience: targetAudience,
@@ -454,7 +494,7 @@ export async function isVideoReadyForAnalysis(videoId: string): Promise<boolean>
 
     // Try a simple analysis call to check if video is ready
     try {
-      await (client as any).summarize({
+      await client.summarize({
         videoId,
         type: 'summary',
         prompt: 'Test summary'
