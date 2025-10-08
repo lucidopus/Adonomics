@@ -7,15 +7,33 @@ import { TwelveLabs } from 'twelvelabs-js'
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const status = searchParams.get('status') || 'live'
+    const status = searchParams.get('status')
+    const userId = searchParams.get('userId')
+    const view = searchParams.get('view') // 'gallery' or 'list'
 
     const client = await clientPromise
     const db = client.db()
 
+    // Build query filter
+    const filter: Record<string, unknown> = {}
+
+    // For gallery view, only show analyzed advertisements
+    if (view === 'gallery') {
+      filter['analysis_results.synthesis.report'] = { $exists: true, $ne: null }
+    }
+
+    if (status) {
+      filter.status = status
+    }
+
+    if (userId) {
+      filter.user_id = new ObjectId(userId)
+    }
+
     const advertisements = await db
       .collection('advertisements')
-      .find({ status })
-      .sort({ updated_at: -1 })
+      .find(filter)
+      .sort({ analyzed_at: -1, updated_at: -1 })
       .toArray()
 
     return NextResponse.json(advertisements, { status: 200 })

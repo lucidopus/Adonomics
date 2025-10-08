@@ -144,7 +144,7 @@ export default function ThemeToggle() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-40"
+              className="fixed inset-0 z-[9998]"
               onClick={() => setIsOpen(false)}
             />
 
@@ -154,7 +154,7 @@ export default function ThemeToggle() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -10 }}
               transition={{ duration: 0.15, ease: "easeOut" }}
-              className="absolute right-0 top-12 z-50 w-48 glass rounded-xl border border-border shadow-apple-xl p-2"
+              className="absolute right-0 top-12 z-[9999] w-48 glass rounded-xl border border-border shadow-apple-xl p-2"
             >
               <div className="space-y-1">
                 {/* Light Theme */}

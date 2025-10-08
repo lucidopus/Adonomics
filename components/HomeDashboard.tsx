@@ -146,19 +146,12 @@ export default function HomeDashboard() {
        // Wait for video indexing to complete before analysis
        await waitForVideoIndexing(result.advertisementId)
 
-       // Reset form
-       setSelectedFile(null)
-       setVideoUrl('')
-       if (fileInputRef.current) {
-         fileInputRef.current.value = ''
-       }
-
     } catch (error) {
       console.error('Upload error:', error)
       alert(`Upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setUploadProgress('')
     } finally {
       setIsUploading(false)
-      setUploadProgress('')
     }
   }
 
@@ -382,45 +375,85 @@ export default function HomeDashboard() {
       >
         {/* Upload Method Selection */}
         <div className="mb-8">
-          <h4 className="text-lg font-semibold mb-4">Choose Upload Method</h4>
+          <motion.h4
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-lg font-semibold mb-4"
+          >
+            Choose Upload Method
+          </motion.h4>
           <div className="flex space-x-4">
-            <button
+            <motion.button
               onClick={() => setUploadMethod('file')}
-              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 relative overflow-hidden ${
                 uploadMethod === 'file'
                   ? 'border-primary bg-primary/5 text-primary'
                   : 'border-border hover:border-primary/50'
               }`}
             >
-              <div className="flex items-center">
-                <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                </svg>
+              {uploadMethod === 'file' && (
+                <motion.div
+                  layoutId="uploadMethodIndicator"
+                  className="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <div className="flex items-center relative z-10">
+                <motion.div
+                  animate={uploadMethod === 'file' ? { scale: [1, 1.1, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                  </svg>
+                </motion.div>
                 <div className="text-left">
                   <div className="font-medium">Upload File</div>
                   <div className="text-sm text-muted-foreground">Select a video file from your device</div>
                 </div>
               </div>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
               onClick={() => setUploadMethod('url')}
-              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 ${
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className={`flex-1 p-4 rounded-xl border-2 transition-all duration-200 relative overflow-hidden ${
                 uploadMethod === 'url'
                   ? 'border-primary bg-primary/5 text-primary'
                   : 'border-border hover:border-primary/50'
               }`}
             >
-              <div className="flex items-center">
-                <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                </svg>
+              {uploadMethod === 'url' && (
+                <motion.div
+                  layoutId="uploadMethodIndicator"
+                  className="absolute inset-0 bg-gradient-to-br from-primary/10 to-purple-500/10"
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                />
+              )}
+              <div className="flex items-center relative z-10">
+                <motion.div
+                  animate={uploadMethod === 'url' ? { scale: [1, 1.1, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                </motion.div>
                 <div className="text-left">
                   <div className="font-medium">Video URL</div>
                   <div className="text-sm text-muted-foreground">Provide a publicly accessible video URL</div>
                 </div>
               </div>
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -430,11 +463,14 @@ export default function HomeDashboard() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
             className="space-y-4"
           >
-            <div
+            <motion.div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer hover:border-primary/50 transition-colors duration-200"
+              whileHover={{ scale: 1.01, borderColor: "rgb(var(--primary) / 0.5)" }}
+              whileTap={{ scale: 0.99 }}
+              className="border-2 border-dashed border-border rounded-xl p-8 text-center cursor-pointer transition-all duration-200 relative overflow-hidden group"
             >
               <input
                 ref={fileInputRef}
@@ -443,21 +479,42 @@ export default function HomeDashboard() {
                 onChange={handleFileSelect}
                 className="hidden"
               />
-              <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              <div className="text-lg font-medium mb-2">
+              <motion.div
+                className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              />
+              <motion.div
+                animate={selectedFile ? { scale: [1, 1.1, 1] } : {}}
+                transition={{ duration: 0.3 }}
+              >
+                <svg className="w-12 h-12 mx-auto mb-4 text-muted-foreground group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </motion.div>
+              <motion.div
+                className="text-lg font-medium mb-2"
+                animate={selectedFile ? { color: "rgb(var(--primary))" } : {}}
+              >
                 {selectedFile ? selectedFile.name : 'Click to select a video file'}
-              </div>
+              </motion.div>
               <div className="text-sm text-muted-foreground">
                 Supported formats: MP4, MOV, AVI, WMV, FLV, WebM (max 2GB)
               </div>
               {selectedFile && (
-                <div className="mt-4 text-sm text-primary">
-                  File size: {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                </div>
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="mt-4 inline-flex items-center space-x-2 px-4 py-2 bg-primary/10 rounded-lg"
+                >
+                  <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm font-medium text-primary">
+                    {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                  </span>
+                </motion.div>
               )}
-            </div>
+            </motion.div>
           </motion.div>
         )}
 
@@ -467,20 +524,52 @@ export default function HomeDashboard() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
             className="space-y-4"
           >
             <div>
-              <label className="block text-sm font-medium mb-2">Video URL</label>
-              <input
-                type="url"
-                value={videoUrl}
-                onChange={(e) => setVideoUrl(e.target.value)}
-                placeholder="https://example.com/video.mp4"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
-              />
-              <div className="mt-2 text-sm text-muted-foreground">
-                Must be a publicly accessible video URL
-              </div>
+              <motion.label
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="block text-sm font-medium mb-2"
+              >
+                Video URL
+              </motion.label>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.15 }}
+                className="relative"
+              >
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video.mp4"
+                  className="w-full px-4 py-3 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200"
+                />
+                {videoUrl && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                  >
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  </motion.div>
+                )}
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="mt-2 text-sm text-muted-foreground flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Must be a publicly accessible video URL</span>
+              </motion.div>
             </div>
           </motion.div>
         )}
@@ -488,41 +577,137 @@ export default function HomeDashboard() {
         {/* Upload Progress */}
         {uploadProgress && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="mt-6 p-4 bg-muted/30 rounded-xl border border-border"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3 }}
+            className="mt-6 p-6 bg-gradient-to-br from-primary/5 via-purple-500/5 to-blue-500/5 rounded-xl border border-primary/20 backdrop-blur-sm"
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start space-x-4 flex-1">
                 {isUploading && (
-                  <div className="w-5 h-5 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1, rotate: 360 }}
+                    transition={{
+                      scale: { duration: 0.3 },
+                      rotate: { duration: 2, repeat: Infinity, ease: "linear" }
+                    }}
+                    className="mt-0.5"
+                  >
+                    <div className="relative w-6 h-6">
+                      <div className="absolute inset-0 border-3 border-primary/20 rounded-full"></div>
+                      <div className="absolute inset-0 border-3 border-transparent border-t-primary border-r-primary rounded-full animate-spin"></div>
+                    </div>
+                  </motion.div>
                 )}
-                <span className="text-sm font-medium">{uploadProgress}</span>
+                {!isUploading && uploadProgress.includes('complete') && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    className="mt-0.5"
+                  >
+                    <div className="w-6 h-6 bg-green-500/20 rounded-full flex items-center justify-center">
+                      <svg className="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  </motion.div>
+                )}
+                <div className="flex-1">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                  >
+                    <p className="text-sm font-semibold text-foreground mb-1">
+                      {uploadProgress.includes('complete') ? 'Complete!' : 'Processing...'}
+                    </p>
+                    <motion.p
+                      key={uploadProgress}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="text-sm text-muted-foreground"
+                    >
+                      {uploadProgress}
+                    </motion.p>
+                  </motion.div>
+                  {uploadProgress.includes('Indexing video') && (
+                    <motion.div
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "100%" }}
+                      transition={{ delay: 0.3, duration: 0.5 }}
+                      className="mt-3 h-1.5 bg-muted/50 rounded-full overflow-hidden"
+                    >
+                      <motion.div
+                        initial={{ width: "0%" }}
+                        animate={{ width: "100%" }}
+                        transition={{
+                          duration: 15,
+                          ease: "easeInOut",
+                          repeat: Infinity
+                        }}
+                        className="h-full bg-gradient-to-r from-primary via-purple-500 to-blue-500 rounded-full"
+                      />
+                    </motion.div>
+                  )}
+                </div>
               </div>
               {advertisementId && !isUploading && uploadProgress.includes('indexed') && (
-                <Button
-                  onClick={() => handleAnalysis(advertisementId)}
-                  size="sm"
-                  variant="outline"
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.2 }}
                 >
-                  Retry Analysis
-                </Button>
+                  <Button
+                    onClick={() => handleAnalysis(advertisementId)}
+                    size="sm"
+                    variant="outline"
+                  >
+                    Retry Analysis
+                  </Button>
+                </motion.div>
               )}
             </div>
           </motion.div>
         )}
 
         {/* Upload Button */}
-        <div className="mt-8 flex justify-end">
-          <Button
-            onClick={handleUpload}
-            disabled={isUploading || (uploadMethod === 'file' && !selectedFile) || (uploadMethod === 'url' && !videoUrl)}
-            size="lg"
-            className="px-8"
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="mt-8 flex justify-end"
+        >
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isUploading ? 'Uploading...' : 'Upload & Analyze'}
-          </Button>
-        </div>
+            <Button
+              onClick={handleUpload}
+              disabled={isUploading || (uploadMethod === 'file' && !selectedFile) || (uploadMethod === 'url' && !videoUrl)}
+              size="lg"
+              className="px-8 relative overflow-hidden group"
+            >
+              <motion.span
+                animate={isUploading ? { opacity: [1, 0.5, 1] } : {}}
+                transition={{ duration: 1.5, repeat: isUploading ? Infinity : 0 }}
+              >
+                {isUploading ? 'Uploading...' : 'Upload & Analyze'}
+              </motion.span>
+              {!isUploading && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                  initial={{ x: '-100%' }}
+                  whileHover={{ x: '100%' }}
+                  transition={{ duration: 0.6 }}
+                />
+              )}
+            </Button>
+          </motion.div>
+        </motion.div>
       </motion.div>
 
       {/* Info Cards */}
