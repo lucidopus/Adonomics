@@ -806,6 +806,19 @@ export default function HomeDashboard() {
           </motion.div>
         ))}
       </div>
+
+      {/* Funny Footer Message */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="glass shadow-lg rounded-2xl p-6 border border-border text-center"
+      >
+        <div className="text-2xl mb-2">🎭</div>
+        <p className="text-sm text-muted-foreground italic">
+          "Remember, even the best ads started as someone's wild idea. Yours could be next!"
+        </p>
+      </motion.div>
     </div>
   )
 }
