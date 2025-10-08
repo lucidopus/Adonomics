@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CheckCircle, AlertTriangle, XCircle, TrendingUp, Target, Lightbulb, BarChart3, Users, FileText, Play, Clock, Eye, Sparkles } from 'lucide-react'
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend } from 'recharts'
+import { CheckCircle, AlertTriangle, XCircle, TrendingUp, Target, Lightbulb, BarChart3, Users, Play, Clock, Eye, Sparkles } from 'lucide-react'
+import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts'
 import { useState } from 'react'
 
 interface AnalysisData {

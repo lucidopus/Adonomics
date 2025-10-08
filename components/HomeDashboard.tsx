@@ -816,7 +816,7 @@ export default function HomeDashboard() {
       >
         <div className="text-2xl mb-2">🎭</div>
         <p className="text-sm text-muted-foreground italic">
-          "Remember, even the best ads started as someone's wild idea. Yours could be next!"
+          &quot;Remember, even the best ads started as someone&#39;s wild idea. Yours could be next!&quot;
         </p>
       </motion.div>
     </div>
