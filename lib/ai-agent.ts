@@ -451,7 +451,7 @@ User Profile: ${context.user_profile?.summary || 'No profile available'}
 
 Competitive Data: ${context.competitive_search?.similar_ads?.length || 0} similar ads found
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object with this exact same structure:
 {
   "twelve_labs_summary": "string",
   "metadata": {"ad_id": "string", "brand": "string", "campaign_name": "string", "year": 2024, "quarter": "Q4", "platform": "YouTube", "region": "Global"},
