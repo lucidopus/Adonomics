@@ -34,6 +34,8 @@ This allows marketers to move beyond blind A/B tests and understand the "so what
 ### 📊 Interactive Dashboards
 - **Home Dashboard:** Personalized insights based on user preferences and role
 - **Live Ads Tracker:** Real-time monitoring of active campaigns with performance metrics
+- **Gallery View:** Browse and manage all analysis reports with filtering and search
+- **Video Search:** Find similar videos and content using AI-powered semantic search
 - **Creative Insights:** AI-powered analysis of video content with actionable recommendations
 - **Profile Management:** User preference settings and personalized AI summaries
 
@@ -42,6 +44,9 @@ This allows marketers to move beyond blind A/B tests and understand the "so what
 - **Onboarding Flow:** Personalized setup based on user role and goals
 - **Responsive Design:** Mobile-first UI with dark/light theme support
 - **Real-time Updates:** Live data synchronization and status tracking
+- **Analysis Gallery:** Visual gallery of all analysis reports with status indicators
+- **Video Search:** Semantic search across video content and analysis results
+- **Modal Analysis:** Detailed analysis views with tabbed interface for different insights
 
 ## 🏗️ Architecture
 
@@ -51,6 +56,8 @@ This allows marketers to move beyond blind A/B tests and understand the "so what
 - **AI Services:** Twelve Labs (Video Analysis), Groq (LLM)
 - **Authentication:** JWT with bcrypt hashing
 - **Styling:** Tailwind CSS with custom design system
+- **Animations:** Framer Motion for smooth transitions
+- **Icons:** Lucide React for consistent iconography
 - **Charts:** Recharts for data visualization
 
 ### Database Models
@@ -62,7 +69,13 @@ This allows marketers to move beyond blind A/B tests and understand the "so what
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/login` - User authentication
 - `POST /api/analyze-video` - Video content analysis
+- `POST /api/analyze-advertisement` - Advertisement analysis with AI insights
 - `POST /api/search-videos` - Find similar video content
+- `POST /api/test-video-ready` - Check if video is ready for analysis
+- `GET /api/advertisements` - List user advertisements
+- `GET /api/advertisements/[id]` - Get specific advertisement details
+- `PATCH /api/advertisements/[id]` - Update advertisement status/decision
+- `POST /api/advertisements/upload-progress` - Stream upload progress for videos
 - `GET /api/preferences` - User preference management
 - `GET /api/user-profile` - Generate personalized summaries
 
@@ -121,21 +134,29 @@ adonomics-creative-genome/
 │   │   └── dashboard/
 │   ├── api/                      # API endpoints
 │   │   ├── advertisements/
+│   │   │   ├── [id]/
+│   │   │   └── upload-progress/
+│   │   ├── analyze-advertisement/
 │   │   ├── analyze-video/
 │   │   ├── auth/
 │   │   ├── preferences/
 │   │   ├── search-videos/
+│   │   ├── test-video-ready/
 │   │   └── user-profile/
 │   ├── globals.css               # Global styles
 │   ├── layout.tsx                # Root layout
 │   └── page.tsx                  # Landing page
 ├── components/                   # React components
 │   ├── auth/                     # Authentication components
+│   ├── onboarding/               # Onboarding flow components
 │   ├── ui/                       # Reusable UI components
 │   ├── AnalysisDashboard.tsx     # Analysis visualization
+│   ├── AnalysisModal.tsx         # Analysis results modal
+│   ├── Gallery.tsx               # Analysis reports gallery
 │   ├── HomeDashboard.tsx         # Main dashboard
 │   ├── LiveAdsDashboard.tsx      # Live ads tracking
-│   └── VideoAnalysis.tsx         # Video analysis interface
+│   ├── VideoAnalysis.tsx         # Video analysis interface
+│   └── VideoSearch.tsx           # Video search functionality
 ├── lib/                          # Utility libraries
 │   ├── auth/                     # Authentication helpers
 │   ├── mongodb/                  # Database models and client
