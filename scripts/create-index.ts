@@ -10,6 +10,15 @@ import { TwelveLabs } from 'twelvelabs-js'
 // Load environment variables from .env.local
 config({ path: '.env.local' })
 
+
+interface CreatedIndex {
+  id?: string;
+  _id?: string;
+  indexName?: string;
+  name?: string;
+  createdAt?: string;
+}
+
 async function createIndex() {
   try {
     console.log('🚀 Creating new Twelve Labs index...\n')
@@ -33,19 +42,19 @@ async function createIndex() {
         }
       ],
       addons: ['thumbnail'] // Generate thumbnails for videos
-    })
+    }) as CreatedIndex;
 
     console.log('✅ Index created successfully!\n')
     console.log('Index Details:')
     console.log('─'.repeat(50))
-    console.log(`Index ID: ${(index as any).id || (index as any)._id}`)
-    console.log(`Index Name: ${(index as any).indexName || (index as any).name}`)
-    console.log(`Created At: ${(index as any).createdAt}`)
+    console.log(`Index ID: ${index.id || index._id}`)
+    console.log(`Index Name: ${index.indexName || index.name}`)
+    console.log(`Created At: ${index.createdAt}`)
     console.log('─'.repeat(50))
     console.log('\n📝 Next steps:')
-    console.log(`1. Copy this index ID: ${(index as any).id || (index as any)._id}`)
+    console.log(`1. Copy this index ID: ${index.id || index._id}`)
     console.log('2. Update your .env.local file:')
-    console.log(`   TWELVE_LABS_INDEX_ID=${(index as any).id || (index as any)._id}`)
+    console.log(`   TWELVE_LABS_INDEX_ID=${index.id || index._id}`)
     console.log('3. Run: npx tsx scripts/upload-videos.ts')
     console.log('\n')
 

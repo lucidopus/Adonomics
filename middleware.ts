@@ -1,6 +1,6 @@
-import { NextResponse, type NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export async function middleware() {
   // For now, keeping middleware simple - no authentication checks
   // In a real app, you might want to add route protection logic here
   return NextResponse.next()

@@ -9,6 +9,12 @@ import { createClient } from '@supabase/supabase-js'
 // Load environment variables
 config({ path: '.env.local' })
 
+interface TaskStatus {
+  videoId?: string;
+  errorMessage?: string;
+  status: string;
+}
+
 async function testUpload() {
   try {
     console.log('🧪 Testing single video upload...\n')
@@ -54,17 +60,17 @@ async function testUpload() {
     // Poll for completion
     let attempts = 0
     while (attempts < 120) { // 10 minutes max
-      const status = await tlClient.tasks.retrieve(task.id!)
+      const status: TaskStatus = await tlClient.tasks.retrieve(task.id!)
 
       if (status.status === 'ready') {
         console.log(`\n🎉 Video indexed successfully!`)
-        console.log(`   Video ID: ${(status as any).videoId}`)
+        console.log(`   Video ID: ${status.videoId}`)
         console.log(`\n✅ Test completed successfully!`)
         console.log('\nYou can now run the full upload script:')
         console.log('   npx tsx scripts/upload-videos.ts')
         return
       } else if (status.status === 'failed') {
-        throw new Error(`Task failed: ${(status as any).errorMessage}`)
+        throw new Error(`Task failed: ${status.errorMessage}`)
       }
 
       console.log(`   [${new Date().toLocaleTimeString()}] Status: ${status.status}`)
