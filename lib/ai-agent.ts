@@ -427,6 +427,7 @@ export async function executeAnalysisPipeline(
 
 /**
  * Generate final analysis report using AI synthesis with Groq API
+ * Compares against live ads to predict performance
  */
 export async function generateAnalysisReport(
   analysisResults: AnalysisResults
@@ -442,79 +443,285 @@ export async function generateAnalysisReport(
       apiKey: process.env.GROQ_API_KEY
     })
 
-    // Prepare the context from analysis results
-    const context = {
-      twelve_labs_summary: analysisResults.video_analysis?.analysis_data?.summary,
-      video_analysis: analysisResults.video_analysis,
-      user_profile: analysisResults.user_profile,
-      competitive_search: analysisResults.competitive_search
+    // Fetch live ads for benchmarking
+    console.log('📊 Fetching live ads for benchmarking...')
+    const client = await clientPromise
+    const db = client.db(process.env.DATABASE_NAME || 'adonomics')
+    const liveAds = await db.collection('advertisements')
+      .find({ status: 'live' })
+      .limit(10)
+      .toArray()
+
+    console.log(`✅ Found ${liveAds.length} live ads for comparison`)
+
+    // Extract detailed Twelve Labs analysis
+    const videoAnalysis = analysisResults.video_analysis?.analysis_data
+    const scenes = videoAnalysis?.scenes || []
+    const summary = videoAnalysis?.summary || ''
+    const themes = videoAnalysis?.themes || []
+    const targetAudience = videoAnalysis?.target_audience || ''
+    const strengths = videoAnalysis?.strengths || []
+    const weaknesses = videoAnalysis?.weaknesses || []
+
+    // Calculate video metadata from scenes
+    const totalDuration = scenes.length > 0 ? Math.max(...scenes.map(s => s.end)) : 0
+    const sceneCount = scenes.length
+    const avgSceneDuration = sceneCount > 0 ? totalDuration / sceneCount : 0
+
+    // Extract objects and emotions across all scenes
+    const allObjects = [...new Set(scenes.flatMap(s => s.objects || []))]
+    const allEmotions = [...new Set(scenes.flatMap(s => s.emotions || []))]
+
+    // Prepare benchmark data from live ads
+    const benchmarkData = liveAds.map(ad => ({
+      video_title: ad.video_title,
+      duration: ad.duration_seconds,
+      platform: ad.platform,
+      metrics: ad.metrics,
+      creative: ad.creative,
+      insights: ad.insights,
+      performance_grade: ad.insights?.performance_grade
+    }))
+
+    // Calculate average metrics from live ads
+    const avgMetrics = {
+      ctr: liveAds.reduce((sum, ad) => sum + (ad.metrics?.ctr || 0), 0) / liveAds.length,
+      vtr: liveAds.reduce((sum, ad) => sum + (ad.metrics?.vtr || 0), 0) / liveAds.length,
+      conversion_rate: liveAds.reduce((sum, ad) => sum + (ad.metrics?.conversion_rate || 0), 0) / liveAds.length,
+      completion_rate: liveAds.reduce((sum, ad) => sum + (ad.metrics?.completion_rate || 0), 0) / liveAds.length,
+      engagement_score: liveAds.reduce((sum, ad) => sum + (ad.metrics?.engagement_score || 0), 0) / liveAds.length,
+      roas: liveAds.reduce((sum, ad) => sum + (ad.metrics?.roas || 0), 0) / liveAds.length
     }
 
-    // Create a simplified synthesis prompt
-    const synthesisPrompt = `Generate a JSON analysis report for this video advertisement using the following data:
+    // Create comprehensive synthesis prompt
+    const synthesisPrompt = `You are an expert advertising analyst. Analyze this video advertisement and predict its performance by comparing it against live ad benchmarks.
 
-Video Summary: ${context.twelve_labs_summary || 'No summary available'}
+## VIDEO ANALYSIS DATA
 
-User Profile: ${context.user_profile?.summary || 'No profile available'}
+### Summary
+${summary}
 
-Competitive Data: ${context.competitive_search?.similar_ads?.length || 0} similar ads found
+### Video Metadata
+- Total Duration: ${totalDuration}s
+- Scene Count: ${sceneCount}
+- Average Scene Duration: ${avgSceneDuration.toFixed(1)}s
+- Pacing: ${avgSceneDuration < 3 ? 'fast' : avgSceneDuration < 6 ? 'medium' : 'slow'}
 
-Return ONLY a valid JSON object with this exact same structure:
+### Scene-by-Scene Breakdown
+${scenes.slice(0, 15).map((scene, idx) => `
+Scene ${idx + 1} (${scene.start}s - ${scene.end}s):
+- Description: ${scene.description}
+- Objects: ${scene.objects?.join(', ') || 'none'}
+- Emotions: ${scene.emotions?.join(', ') || 'none'}
+`).join('\n')}
+
+### Creative Elements Detected
+- Objects Present: ${allObjects.join(', ') || 'none detected'}
+- Emotions Conveyed: ${allEmotions.join(', ') || 'none detected'}
+- Themes: ${themes.join(', ') || 'none identified'}
+
+### Target Audience
+${targetAudience}
+
+### Twelve Labs Analysis
+Strengths: ${strengths.join(' | ')}
+Weaknesses: ${weaknesses.join(' | ')}
+
+## USER PROFILE & PRIORITIES
+${analysisResults.user_profile?.summary || 'No profile available'}
+
+**IMPORTANT:** This analysis MUST be tailored to this specific user's profile. Address their:
+- Primary goals (what metrics and outcomes they care about most)
+- Decision factors (what they prioritize when evaluating creative)
+- Campaign types and platforms they use
+- Pain points and frustrations they experience
+- How quickly they need results and in what format
+
+Your recommendations, predictions, and insights should speak directly to THEIR needs, not generic best practices.
+
+## LIVE AD BENCHMARKS (for comparison)
+
+Average Performance Metrics Across Live Ads:
+- CTR: ${avgMetrics.ctr.toFixed(2)}%
+- VTR: ${avgMetrics.vtr.toFixed(0)}%
+- Conversion Rate: ${avgMetrics.conversion_rate.toFixed(1)}%
+- Completion Rate: ${avgMetrics.completion_rate.toFixed(0)}%
+- Engagement Score: ${avgMetrics.engagement_score.toFixed(0)}
+- ROAS: ${avgMetrics.roas.toFixed(2)}x
+
+Live Ad Examples:
+${benchmarkData.slice(0, 5).map(ad => `
+- "${ad.video_title}" (${ad.duration}s on ${ad.platform})
+  Grade: ${ad.performance_grade}
+  CTR: ${ad.metrics?.ctr}%, VTR: ${ad.metrics?.vtr}%, Conv: ${ad.metrics?.conversion_rate}%
+  Creative: ${ad.creative?.pacing} pacing, ${ad.creative?.dominant_emotion} emotion
+  Has CTA: ${ad.creative?.has_cta}, Has Music: ${ad.creative?.has_music}, Has Faces: ${ad.creative?.has_faces}
+  Top Strength: ${ad.insights?.strengths?.[0]?.element || 'N/A'}
+`).join('\n')}
+
+## YOUR TASK
+
+Compare this new ad against the live ad benchmarks and generate a comprehensive, data-driven analysis report.
+
+**Critical Instructions:**
+1. Analyze how this ad's creative elements compare to successful live ads
+2. Identify specific patterns from high-performing ads (A/B grade) that this ad has or lacks
+3. Predict specific performance metrics (CTR, VTR, conversion rate, engagement score, ROAS) with rationale
+4. Provide actionable recommendations with expected impact percentages
+5. Assign a realistic performance grade (A/B/C/D/F) based on comparison to live ads
+6. Be specific and quantitative - use numbers, timestamps, percentages, and concrete examples
+
+Return ONLY a valid JSON object with this EXACT structure (all fields required for UI compatibility):
 {
-  "twelve_labs_summary": "string",
-  "metadata": {"ad_id": "string", "brand": "string", "campaign_name": "string", "year": 2024, "quarter": "Q4", "platform": "YouTube", "region": "Global"},
-  "creative_features": {"scene_id": "main", "scene_duration": 30, "objects_present": ["product"], "faces_detected": 1, "brand_logo_presence": true, "text_on_screen": ["CTA"], "audio_elements": ["music"], "music_tempo": "moderate", "music_mode": "positive", "color_palette_dominant": ["#000"], "editing_pace": 1.0},
-  "emotional_features": {"emotion_primary": "positive", "emotion_intensity": 7, "emotional_arc_timeline": ["intro", "body", "cta"], "tone_of_voice": "confident", "facial_expression_emotions": {"happy": 0.8}, "audience_perceived_sentiment": "positive", "cultural_sensitivity_flag": false},
-  "success_prediction": {"confidence_score": 80, "key_strengths": ["Clear message"], "performance_factors": ["Good targeting"], "audience_fit": "Target demographic", "competitive_advantage": "Unique value prop"},
-  "risk_assessment": {"risk_level": "low", "potential_issues": ["Minor issues"], "failure_risks": ["Low engagement"], "mitigation_suggestions": ["Monitor performance"]},
-  "personalized_recommendations": {"decision_suggestion": "approve", "action_items": ["Launch campaign"], "optimization_priorities": ["Audience targeting"], "user_specific_insights": "Based on your profile", "performance_based_rationale": "Meets KPIs", "expected_roi_impact": "Positive ROI", "competitive_benchmarking": "Above average"},
-  "creative_analysis": {"storytelling_effectiveness": "Good", "visual_impact": "Strong", "emotional_resonance": "High", "technical_quality": "Professional"},
-  "competitive_intelligence": {"market_positioning": "Competitive", "benchmark_comparison": "Above average", "differentiation_opportunities": ["Unique features"], "trend_alignment": "Current trends"}
+  "twelve_labs_summary": "2-3 sentence summary of the ad's key creative approach",
+  "metadata": {
+    "brand": "extracted brand name",
+    "campaign_name": "inferred campaign theme/name",
+    "year": ${new Date().getFullYear()},
+    "quarter": "Q${Math.ceil((new Date().getMonth() + 1) / 3)}",
+    "platform": "youtube/meta/tiktok/instagram based on duration and style",
+    "region": "Global or specific region if identifiable"
+  },
+  "creative_features": {
+    "scene_id": "main",
+    "scene_duration": ${totalDuration},
+    "scene_count": ${sceneCount},
+    "avg_scene_duration": ${avgSceneDuration.toFixed(1)},
+    "pacing": "fast/medium/slow",
+    "objects_present": ${JSON.stringify(allObjects.slice(0, 10))},
+    "faces_detected": number (count from video),
+    "brand_logo_presence": true/false,
+    "text_on_screen": ["text elements visible"],
+    "audio_elements": ["music", "voiceover", "sound effects"],
+    "music_tempo": "fast/moderate/slow",
+    "music_mode": "upbeat/neutral/dramatic",
+    "color_palette_dominant": ["#hexcolor1", "#hexcolor2"],
+    "editing_pace": number (cuts per second, estimate based on scene count/duration)
+  },
+  "emotional_features": {
+    "emotion_primary": "joy/excitement/inspiration/calm/humor/etc",
+    "emotion_intensity": number (1-10 scale),
+    "emotional_arc_timeline": ["beginning emotion", "middle emotion", "end emotion"],
+    "tone_of_voice": "confident/playful/serious/aspirational",
+    "facial_expression_emotions": {"happy": 0-1, "surprised": 0-1, "excited": 0-1},
+    "audience_perceived_sentiment": "positive/neutral/negative",
+    "cultural_sensitivity_flag": false (true only if issues detected)
+  },
+  "success_prediction": {
+    "confidence_score": number (0-100, based on comparison to successful live ads),
+    "key_strengths": ["Short strength 1", "Short strength 2", "Short strength 3"],
+    "performance_factors": ["Factor contributing to success 1", "Factor 2"],
+    "audience_fit": "Brief description of target audience alignment",
+    "competitive_advantage": "What makes this ad stand out vs competitors",
+    "predicted_metrics": {
+      "ctr": number,
+      "vtr": number,
+      "conversion_rate": number,
+      "completion_rate": number,
+      "engagement_score": number,
+      "roas": number,
+      "grade": "A/B/C/D/F",
+      "grade_rationale": "Why this grade based on benchmarks"
+    }
+  },
+  "risk_assessment": {
+    "risk_level": "low/medium/high",
+    "potential_issues": ["Issue 1 with severity", "Issue 2"],
+    "failure_risks": ["Risk that could cause poor performance"],
+    "mitigation_suggestions": ["Specific action to reduce risk 1", "Action 2"]
+  },
+  "personalized_recommendations": {
+    "decision_suggestion": "approve/suspend/reject",
+    "action_items": ["Specific action 1", "Specific action 2", "Specific action 3"],
+    "optimization_priorities": ["Priority 1", "Priority 2", "Priority 3"],
+    "user_specific_insights": "1-2 paragraph explanation of how this ad aligns with user's goals, platforms, pain points, and decision factors. Be specific about metrics they care about.",
+    "performance_based_rationale": "Why approve/reject based on predicted performance vs benchmarks",
+    "expected_roi_impact": "Expected ROI range or description (e.g., '3.2x-3.8x ROAS, above 3.63x benchmark')",
+    "competitive_benchmarking": "How this compares to live ad performance (e.g., 'CTR 15% above average, completion rate similar to top performers')"
+  },
+  "creative_analysis": {
+    "storytelling_effectiveness": "Excellent/Good/Fair/Poor - brief explanation",
+    "visual_impact": "Strong/Moderate/Weak - brief explanation",
+    "emotional_resonance": "High/Medium/Low - brief explanation",
+    "technical_quality": "Professional/Competent/Basic - brief explanation"
+  },
+  "competitive_intelligence": {
+    "market_positioning": "How this ad positions against competitors in the market",
+    "benchmark_comparison": "Performance prediction vs average live ads (e.g., 'Above average on engagement, at par on conversion')",
+    "differentiation_opportunities": "What could make this ad more unique",
+    "trend_alignment": "How well this aligns with current advertising trends"
+  },
+  "detailed_strengths": [
+    {
+      "element": "Specific creative element with timestamp",
+      "impact": "+X% metric based on live ad patterns",
+      "timestamp": number,
+      "benchmark_comparison": "Comparison to successful ads"
+    }
+  ],
+  "detailed_weaknesses": [
+    {
+      "element": "Specific weakness",
+      "impact": "-X% estimated impact",
+      "severity": "critical/high/medium/low",
+      "examples_from_live_ads": "How top performers handle this"
+    }
+  ],
+  "detailed_recommendations": [
+    {
+      "title": "Actionable recommendation",
+      "priority": "critical/high/medium/low",
+      "expected_lift": "+X% specific metric",
+      "rationale": "Why this works based on benchmarks",
+      "implementation": "How to implement"
+    }
+  ],
+  "executive_summary": "2-3 paragraph detailed summary covering: (1) creative strengths/weaknesses vs live ads, (2) predicted performance with specific metrics and grade, (3) clear recommendation with key actions and reasoning"
 }
 
-Fill in the values based on the provided data. Respond with ONLY the JSON object, no additional text.`
+Generate thoughtful, specific, data-driven analysis. Use the live ad benchmarks extensively to justify every prediction and recommendation.`
 
-    console.log('📝 Final synthesis prompt being sent to Groq:')
-    console.log('--- SYNTHESIS PROMPT START ---')
-    console.log(synthesisPrompt.substring(0, 500) + '...')
-    console.log('--- SYNTHESIS PROMPT END ---')
-
-    // Try with a reliable model
-    console.log('🔄 Making Groq API call with model: openai/gpt-oss-120b')
-    console.log('📝 Synthesis prompt length:', synthesisPrompt.length)
+    console.log('📝 Sending comprehensive synthesis prompt to Groq')
+    console.log(`📊 Prompt length: ${synthesisPrompt.length} chars`)
+    console.log(`📈 Analyzing against ${liveAds.length} live ads`)
 
     const completion = await groq.chat.completions.create({
-      model: "openai/gpt-oss-120b",
+      model: "llama-3.3-70b-versatile", // Better model for complex analysis
       messages: [
         {
           role: "system",
-          content: "You are an AI assistant that generates structured JSON analysis reports for video advertisements. Always respond with valid JSON only, no additional text."
+          content: "You are an expert advertising analyst and data scientist specializing in video ad creative performance prediction. You provide detailed, quantitative analysis comparing new ads against successful benchmarks. Always respond with valid JSON only."
         },
         {
           role: "user",
           content: synthesisPrompt
         }
       ],
-      temperature: 0.1,
-      max_tokens: 4000
+      temperature: 0.3, // Slightly higher for more nuanced analysis
+      max_tokens: 8000 // More tokens for detailed analysis
     })
 
     console.log('✅ Groq API response received')
-    console.log('📊 Response choices:', completion.choices?.length)
 
-    // Extract the JSON response
     const messageContent = completion.choices[0]?.message?.content
-    console.log('📄 Response content length:', messageContent?.length)
-
     if (!messageContent) {
       throw new Error('No content received from AI')
     }
 
+    console.log('📄 Response length:', messageContent.length, 'chars')
     console.log('🔍 Parsing JSON response...')
-    console.log('📄 Raw response preview:', messageContent.substring(0, 200) + '...')
 
-    const report = JSON.parse(messageContent)
-    console.log('✅ Successfully parsed analysis report')
+    // Clean potential markdown code blocks
+    let cleanedContent = messageContent.trim()
+    if (cleanedContent.startsWith('```json')) {
+      cleanedContent = cleanedContent.replace(/^```json\s*/, '').replace(/\s*```$/, '')
+    } else if (cleanedContent.startsWith('```')) {
+      cleanedContent = cleanedContent.replace(/^```\s*/, '').replace(/\s*```$/, '')
+    }
+
+    const report = JSON.parse(cleanedContent)
+    console.log('✅ Successfully parsed comprehensive analysis report')
+    console.log(`📊 Generated ${report.strengths?.length || 0} strengths, ${report.weaknesses?.length || 0} weaknesses, ${report.recommendations?.length || 0} recommendations`)
 
     return report
 
