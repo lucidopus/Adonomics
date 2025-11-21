@@ -209,9 +209,9 @@ export default function Gallery() {
             >
               <option value="all">All Status</option>
               <option value="analyzed">Analyzed</option>
-              <option value="approved">Approved</option>
-              <option value="suspended">Suspended</option>
-              <option value="rejected">Rejected</option>
+              <option value="approved">Launched</option>
+              <option value="suspended">On Hold</option>
+              <option value="rejected">Archived</option>
             </select>
           </div>
         </div>
@@ -305,29 +305,25 @@ export default function Gallery() {
                           {(analysis.analysis_results?.synthesis?.report as { metadata?: { platform?: string } }).metadata!.platform}
                         </span>
                       )}
-                     {analysis.status && (
-                       <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                         analysis.status === 'approved' ? 'bg-green-500/10 text-green-600' :
-                         analysis.status === 'suspended' ? 'bg-yellow-500/10 text-yellow-600' :
-                         analysis.status === 'rejected' ? 'bg-red-500/10 text-red-600' :
-                         'bg-gray-500/10 text-gray-600'
-                       }`}>
-                         {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
-                       </span>
-                     )}
-                     {analysis.analysis_results?.decision_comments && (
-                       <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-xs text-red-600">
-                         {analysis.analysis_results.decision_comments}
-                       </span>
-                     )}
-                   </div>
-
-                   {/* Decision Comments */}
-                   {analysis.analysis_results?.decision_comments && (
-                     <div className="text-xs text-red-600 mt-2 px-1">
-                       {analysis.analysis_results.decision_comments}
-                     </div>
-                   )}
+                      {analysis.status && (
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          analysis.status === 'approved' ? 'bg-green-500/10 text-green-600' :
+                          analysis.status === 'suspended' ? 'bg-yellow-500/10 text-yellow-600' :
+                          analysis.status === 'rejected' ? 'bg-red-500/10 text-red-600' :
+                          'bg-gray-500/10 text-gray-600'
+                        }`}>
+                          {analysis.status === 'approved' ? 'Launched' :
+                           analysis.status === 'suspended' ? 'On Hold' :
+                           analysis.status === 'rejected' ? 'Archived' :
+                           analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
+                        </span>
+                      )}
+                      {analysis.analysis_results?.decision_comments && (
+                        <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-xs text-red-600">
+                          Has Comments
+                        </span>
+                      )}
+                    </div>
                 </div>
               </motion.div>
             ))}
@@ -372,19 +368,12 @@ export default function Gallery() {
                            <span>{new Date(analysis.analyzed_at).toLocaleDateString()}</span>
                          </div>
                        )}
-                       {analysis.analysis_results?.decision_comments && (
-                         <div className="px-2 py-1 rounded-full bg-red-500/10 text-xs text-red-600">
-                           {analysis.analysis_results.decision_comments}
-                         </div>
-                       )}
-                     </div>
-
-                     {/* Decision Comments */}
-                     {analysis.analysis_results?.decision_comments && (
-                       <div className="text-xs text-red-600 mt-2 px-1">
-                         {analysis.analysis_results.decision_comments}
-                       </div>
-                     )}
+                        {analysis.analysis_results?.decision_comments && (
+                          <div className="px-2 py-1 rounded-full bg-red-500/10 text-xs text-red-600">
+                            Has Comments
+                          </div>
+                        )}
+                      </div>
                   </div>
 
                   <svg className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -410,24 +399,24 @@ export default function Gallery() {
               <div className="text-2xl font-bold text-primary">{filteredAnalyses.length}</div>
               <div className="text-sm text-muted-foreground">Total Analyses</div>
             </div>
-             <div>
-               <div className="text-2xl font-bold text-green-600">
-                 {filteredAnalyses.filter(a => a.status === 'approved').length}
-               </div>
-               <div className="text-sm text-muted-foreground">Approved</div>
-             </div>
-             <div>
-               <div className="text-2xl font-bold text-yellow-600">
-                 {filteredAnalyses.filter(a => a.status === 'suspended').length}
-               </div>
-               <div className="text-sm text-muted-foreground">Suspended</div>
-             </div>
-             <div>
-               <div className="text-2xl font-bold text-red-600">
-                 {filteredAnalyses.filter(a => a.status === 'rejected').length}
-               </div>
-               <div className="text-sm text-muted-foreground">Rejected</div>
-             </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">
+                  {filteredAnalyses.filter(a => a.status === 'approved').length}
+                </div>
+                <div className="text-sm text-muted-foreground">Launched</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">
+                  {filteredAnalyses.filter(a => a.status === 'suspended').length}
+                </div>
+                <div className="text-sm text-muted-foreground">On Hold</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-red-600">
+                  {filteredAnalyses.filter(a => a.status === 'rejected').length}
+                </div>
+                <div className="text-sm text-muted-foreground">Archived</div>
+              </div>
           </div>
         </motion.div>
       )}

@@ -36,7 +36,22 @@ export async function GET(request: NextRequest) {
       .sort({ analyzed_at: -1, updated_at: -1 })
       .toArray()
 
-    return NextResponse.json(advertisements, { status: 200 })
+    // For gallery view, restructure decision fields to match frontend expectations
+    const processedAdvertisements = advertisements.map(ad => {
+      if (view === 'gallery' && (ad.decision || ad.decision_comments)) {
+        return {
+          ...ad,
+          analysis_results: {
+            ...ad.analysis_results,
+            decision: ad.decision,
+            decision_comments: ad.decision_comments
+          }
+        }
+      }
+      return ad
+    })
+
+    return NextResponse.json(processedAdvertisements, { status: 200 })
   } catch (error) {
     console.error('Error fetching advertisements:', error)
     return NextResponse.json(
