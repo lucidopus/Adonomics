@@ -376,6 +376,14 @@ async function getCompetitiveIntelligence(videoId: string): Promise<CompetitiveS
 
     return competitiveResults
   } catch (error) {
+    // Pegasus index doesn't support search - this is expected
+    if (error instanceof Error && error.message.includes('index_not_supported_for_search')) {
+      console.log('⚠️  Competitive intelligence skipped - Pegasus index does not support search (generation-only model)')
+      return {
+        similar_ads: [],
+        searched_at: new Date()
+      }
+    }
     console.error('Error getting competitive intelligence:', error)
     return {
       similar_ads: [],
