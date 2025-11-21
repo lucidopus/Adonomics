@@ -113,6 +113,14 @@ export async function searchSimilarVideos(
 
     // Handle specific TwelveLabs errors
     if (error instanceof Error) {
+      // Check for search not supported (Pegasus doesn't support search)
+      if (error.message.includes('index_not_supported_for_search')) {
+        throw new Error('Search is not supported with Pegasus index. Pegasus is optimized for video generation/analysis only. To use search features, you need a Marengo index.')
+      }
+      // Check for 403 authorization errors
+      if (error.message.includes('403') || error.message.includes('read_not_allowed') || error.message.includes('not authorized')) {
+        throw new Error('API key is not authorized to access this index. Please verify your TWELVE_LABS_INDEX_ID matches your API key account.')
+      }
       if (error.message.includes('API key') || error.message.includes('unauthorized')) {
         throw new Error('TwelveLabs API key is not configured or invalid')
       }
@@ -194,6 +202,25 @@ export async function searchSimilarVideosById(
 
   } catch (error) {
     console.error('Error searching similar videos by ID:', error)
+
+    // Handle specific TwelveLabs errors
+    if (error instanceof Error) {
+      // Check for search not supported (Pegasus doesn't support search)
+      if (error.message.includes('index_not_supported_for_search')) {
+        throw new Error('index_not_supported_for_search')
+      }
+      // Check for 403 authorization errors
+      if (error.message.includes('403') || error.message.includes('read_not_allowed') || error.message.includes('not authorized')) {
+        throw new Error('API key is not authorized to access this index. Please verify your TWELVE_LABS_INDEX_ID matches your API key account.')
+      }
+      if (error.message.includes('API key') || error.message.includes('unauthorized')) {
+        throw new Error('TwelveLabs API key is not configured or invalid')
+      }
+      if (error.message.includes('index') || error.message.includes('not found')) {
+        throw new Error('TwelveLabs index ID is not configured or invalid')
+      }
+    }
+
     throw new Error('Failed to search similar videos by ID')
   }
 }
@@ -336,6 +363,10 @@ export async function analyzeVideo(
 
     // Provide more specific error messages
     if (error instanceof Error) {
+      // Check for 403 authorization errors
+      if (error.message.includes('403') || error.message.includes('read_not_allowed') || error.message.includes('not authorized')) {
+        throw new Error('API key is not authorized to access this index. Please verify your TWELVE_LABS_INDEX_ID matches your API key account.')
+      }
       if (error.message.includes('video_not_ready') || error.message.includes('still being indexed')) {
         throw new Error('Video is still being processed by Twelve Labs. Please wait for indexing to complete (typically 5-15 minutes) before analyzing.')
       }

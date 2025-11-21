@@ -18,6 +18,9 @@ interface AnalysisData {
   creative_features?: {
     scene_id?: string
     scene_duration?: number
+    scene_count?: number
+    avg_scene_duration?: number
+    pacing?: string
     objects_present?: string[]
     faces_detected?: number
     brand_logo_presence?: boolean
@@ -43,6 +46,16 @@ interface AnalysisData {
     performance_factors: string[]
     audience_fit: string
     competitive_advantage: string
+    predicted_metrics?: {
+      ctr?: number
+      vtr?: number
+      conversion_rate?: number
+      completion_rate?: number
+      engagement_score?: number
+      roas?: number
+      grade?: string
+      grade_rationale?: string
+    }
   }
   risk_assessment: {
     risk_level: 'low' | 'medium' | 'high'
@@ -71,6 +84,26 @@ interface AnalysisData {
     differentiation_opportunities: string
     trend_alignment: string
   }
+  detailed_strengths?: Array<{
+    element: string
+    impact: string
+    timestamp: number
+    benchmark_comparison: string
+  }>
+  detailed_weaknesses?: Array<{
+    element: string
+    impact: string
+    severity: string
+    examples_from_live_ads: string
+  }>
+  detailed_recommendations?: Array<{
+    title: string
+    priority: string
+    expected_lift: string
+    rationale: string
+    implementation: string
+  }>
+  executive_summary?: string
 }
 
 interface AnalysisDashboardProps {
@@ -463,6 +496,84 @@ export default function AnalysisDashboard({ analysisData, videoTitle, finalDecis
           </div>
         </motion.div>
       </div>
+
+      {/* Predicted Performance Metrics */}
+      {analysisData.success_prediction?.predicted_metrics && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+          className="glass rounded-2xl p-6 border border-border"
+        >
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Predicted Performance</h3>
+                <p className="text-xs text-muted-foreground">Compared to live ad benchmarks</p>
+              </div>
+            </div>
+            {analysisData.success_prediction.predicted_metrics.grade && (
+              <div className={`px-4 py-2 rounded-xl font-bold text-2xl ${
+                analysisData.success_prediction.predicted_metrics.grade === 'A' ? 'bg-green-500/20 text-green-600 border border-green-500/30' :
+                analysisData.success_prediction.predicted_metrics.grade === 'B' ? 'bg-blue-500/20 text-blue-600 border border-blue-500/30' :
+                analysisData.success_prediction.predicted_metrics.grade === 'C' ? 'bg-yellow-500/20 text-yellow-600 border border-yellow-500/30' :
+                'bg-red-500/20 text-red-600 border border-red-500/30'
+              }`}>
+                {analysisData.success_prediction.predicted_metrics.grade}
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {analysisData.success_prediction.predicted_metrics.ctr !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">CTR</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.ctr.toFixed(2)}%</div>
+              </div>
+            )}
+            {analysisData.success_prediction.predicted_metrics.vtr !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">VTR</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.vtr.toFixed(0)}%</div>
+              </div>
+            )}
+            {analysisData.success_prediction.predicted_metrics.conversion_rate !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">Conv Rate</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.conversion_rate.toFixed(1)}%</div>
+              </div>
+            )}
+            {analysisData.success_prediction.predicted_metrics.completion_rate !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">Completion</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.completion_rate.toFixed(0)}%</div>
+              </div>
+            )}
+            {analysisData.success_prediction.predicted_metrics.engagement_score !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">Engagement</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.engagement_score.toFixed(0)}</div>
+              </div>
+            )}
+            {analysisData.success_prediction.predicted_metrics.roas !== undefined && (
+              <div className="bg-muted/20 rounded-xl p-4">
+                <div className="text-xs text-muted-foreground mb-1">ROAS</div>
+                <div className="text-2xl font-bold">{analysisData.success_prediction.predicted_metrics.roas.toFixed(2)}x</div>
+              </div>
+            )}
+          </div>
+
+          {analysisData.success_prediction.predicted_metrics.grade_rationale && (
+            <div className="mt-4 p-4 bg-muted/10 rounded-xl border border-border">
+              <h4 className="text-sm font-medium mb-2">Grade Rationale</h4>
+              <p className="text-sm text-muted-foreground">{analysisData.success_prediction.predicted_metrics.grade_rationale}</p>
+            </div>
+          )}
+        </motion.div>
+      )}
 
       {/* Visualizations */}
       {analysisData.creative_features && analysisData.emotional_features && (
