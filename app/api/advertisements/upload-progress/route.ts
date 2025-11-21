@@ -1,6 +1,8 @@
 import { NextRequest } from 'next/server'
 import { TwelveLabs } from 'twelvelabs-js'
 
+export const maxDuration = 300; // 5 minutes
+
 /**
  * Server-Sent Events endpoint for streaming video upload and indexing progress
  * This provides real-time status updates to the frontend
@@ -50,85 +52,111 @@ export async function POST(request: NextRequest) {
       await sendProgress('uploading', 'Uploading video to Twelve Labs...', 10)
 
       // Create the upload task
-      let task
-      try {
-        if (videoFile) {
-          task = await (client as unknown as {
-            tasks: {
-              create: (params: { indexId: string; videoFile: File; enableVideoStream: boolean }) => Promise<{ id: string; videoId: string }>
+      const task = await client.tasks.create(
+        videoFile
+          ? {
+              indexId,
+              videoFile,
+              enableVideoStream: true
             }
-          }).tasks.create({
-            indexId,
-            videoFile,
-            enableVideoStream: true
-          })
-        } else if (videoUrl) {
-          task = await (client as unknown as {
-            tasks: {
-              create: (params: { indexId: string; videoUrl: string; enableVideoStream: boolean }) => Promise<{ id: string; videoId: string }>
-            }
-          }).tasks.create({
-            indexId,
-            videoUrl,
-            enableVideoStream: true
-          })
+          : {
+              indexId,
+              videoUrl: videoUrl!,
+              enableVideoStream: true
+            },
+        { timeoutInSeconds: 600 }
+      )
+
+      if (!task) {
+        await sendProgress('error', 'Failed to create upload task', 0)
+        await writer.close()
+        return
+      }
+
+      await sendProgress('uploaded', 'Video uploaded successfully!', 30)
+
+      // Wait for indexing to complete with progress tracking
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let completedTask: any = null
+      let isDone = false
+      while (!isDone) {
+        const currentTask = await client.tasks.retrieve(task.id!)
+
+        switch (currentTask.status) {
+          case 'ready':
+            completedTask = currentTask
+            isDone = true
+            break
+          case 'failed':
+            await sendProgress(
+              'error',
+              `Video indexing failed with status: ${currentTask.status}`,
+              0
+            )
+            await writer.close()
+            return
+          case 'uploading':
+            await sendProgress(
+              'uploading',
+              'Uploading video to Twelve Labs...',
+              20
+            )
+            break
+          case 'validating':
+            await sendProgress(
+              'validating',
+              'Validating video format and metadata...',
+              40
+            )
+            break
+          case 'pending':
+            await sendProgress('pending', 'Preparing video for indexing...', 50)
+            break
+          case 'queued':
+            await sendProgress(
+              'queued',
+              'Video queued for processing...',
+              60
+            )
+            break
+          case 'indexing':
+            await sendProgress(
+              'indexing',
+              'Generating video embeddings and analysis data...',
+              75
+            )
+            break
+          default:
+            await sendProgress(
+              'processing',
+              `Processing: ${currentTask.status}`,
+              70
+            )
         }
 
-        if (!task) {
-          await sendProgress('error', 'Failed to create upload task', 0)
-          await writer.close()
-          return
+        if (!isDone) {
+          await new Promise(resolve => setTimeout(resolve, 5000)) // Wait 5 seconds before polling again
         }
+      }
 
-        await sendProgress('uploaded', 'Video uploaded successfully!', 30)
-
-        // Wait for indexing to complete with progress tracking
-        const completedTask = await (client as unknown as {
-          tasks: {
-            waitForDone: (taskId: string, options?: {
-              sleepInterval?: number;
-              callback?: (task: { status: string; videoId?: string }) => void
-            }) => Promise<{ status: string; videoId: string; id: string }>
-          }
-        }).tasks.waitForDone(task.id, {
-          sleepInterval: 5,
-          callback: async (currentTask) => {
-            // Map TwelveLabs status to progress percentage and user-friendly messages
-            switch (currentTask.status) {
-              case 'uploading':
-                await sendProgress('uploading', 'Uploading video to Twelve Labs...', 20)
-                break
-              case 'validating':
-                await sendProgress('validating', 'Validating video format and metadata...', 40)
-                break
-              case 'pending':
-                await sendProgress('pending', 'Preparing video for indexing...', 50)
-                break
-              case 'queued':
-                await sendProgress('queued', 'Video queued for processing...', 60)
-                break
-              case 'indexing':
-                await sendProgress('indexing', 'Generating video embeddings and analysis data...', 75)
-                break
-              default:
-                await sendProgress('processing', `Processing: ${currentTask.status}`, 70)
-            }
-          }
-        })
-
-        // Check if indexing was successful
-        if (completedTask.status !== 'ready') {
-          await sendProgress('error', `Video indexing failed with status: ${completedTask.status}`, 0)
-          await writer.close()
-          return
-        }
+      // Check if indexing was successful
+      if (!completedTask || completedTask.status !== 'ready') {
+        await sendProgress(
+          'error',
+          `Video indexing failed with status: ${completedTask?.status || 'unknown'}`,
+          0
+        )
+        await writer.close()
+        return
+      }
 
         await sendProgress('indexing_complete', 'Video successfully indexed!', 90)
 
-        // Import MongoDB operations here to save the advertisement
-        const { ObjectId } = await import('mongodb')
-        const clientPromise = (await import('@/lib/mongodb/client')).default
-        const { AdvertisementModel } = await import('@/lib/mongodb/models/Advertisement')
+        try {
+          // Import MongoDB operations here to save the advertisement
+          const { ObjectId } = await import('mongodb')
+          const clientPromise = (await import('@/lib/mongodb/client')).default
+          const { AdvertisementModel } = await import('@/lib/mongodb/models/Advertisement')
 
         const mongoClient = await clientPromise
         const db = mongoClient.db()
@@ -145,8 +173,8 @@ export async function POST(request: NextRequest) {
         const advertisement = {
           ...advertisementData,
           twelve_labs_index_id: indexId,
-          twelve_labs_task_id: completedTask.id,
-          twelve_labs_video_id: completedTask.videoId
+          twelve_labs_task_id: completedTask!.id,
+          twelve_labs_video_id: completedTask!.videoId
         }
 
         const result = await db
@@ -161,8 +189,8 @@ export async function POST(request: NextRequest) {
           message: 'Upload complete',
           progress: 100,
           data: {
-            taskId: completedTask.id,
-            videoId: completedTask.videoId,
+            taskId: completedTask!.id,
+            videoId: completedTask!.videoId,
             advertisementId: result.insertedId.toString()
           }
         })
