@@ -10,6 +10,13 @@ import { TwelveLabs } from 'twelvelabs-js'
 // Load environment variables from .env.local
 config({ path: '.env.local' })
 
+
+interface CreatedIndex {
+  id?: string;
+  _id?: string;
+  createdAt?: string;
+}
+
 async function createPegasusIndex() {
   try {
     console.log('🚀 Creating Twelve Labs index with Pegasus (search + generation)...\n')
@@ -33,20 +40,20 @@ async function createPegasusIndex() {
         }
       ],
       addons: ['thumbnail']
-    })
+    }) as CreatedIndex;
 
     console.log('✅ Index created successfully!\n')
     console.log('Index Details:')
     console.log('─'.repeat(50))
-    console.log(`Index ID: ${(index as any).id || (index as any)._id}`)
+    console.log(`Index ID: ${index.id || index._id}`)
     console.log(`Index Name: adonomics-demo`)
     console.log(`Model: Pegasus 1.2 (search + generation)`)
-    console.log(`Created At: ${(index as any).createdAt}`)
+    console.log(`Created At: ${index.createdAt}`)
     console.log('─'.repeat(50))
     console.log('\n📝 Next steps:')
-    console.log(`1. Copy this index ID: ${(index as any).id || (index as any)._id}`)
+    console.log(`1. Copy this index ID: ${index.id || index._id}`)
     console.log('2. Update your .env.local file:')
-    console.log(`   TWELVE_LABS_INDEX_ID=${(index as any).id || (index as any)._id}`)
+    console.log(`   TWELVE_LABS_INDEX_ID=${index.id || index._id}`)
     console.log('3. Delete old index (691fee1470302693d98c6bc0) from dashboard')
     console.log('4. Upload videos: npx tsx scripts/upload-videos.ts')
     console.log('\n')

@@ -891,33 +891,33 @@ export default function AnalysisDashboard({ analysisData, videoTitle, finalDecis
               rows={3}
             />
             <div className="flex flex-col sm:flex-row gap-3">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onDecision('reject', decisionComments)}
-                className="flex-1 px-6 py-3 rounded-xl border-2 border-red-200 text-red-700 font-medium hover:bg-red-50 transition-all flex items-center justify-center space-x-2"
-              >
-                <XCircle className="w-5 h-5" />
-                <span>Reject</span>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onDecision('suspend', decisionComments)}
-                className="flex-1 px-6 py-3 rounded-xl border-2 border-yellow-200 text-yellow-700 font-medium hover:bg-yellow-50 transition-all flex items-center justify-center space-x-2"
-              >
-                <AlertTriangle className="w-5 h-5" />
-                <span>Suspend</span>
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onDecision('approve', decisionComments)}
-                className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-green-500/30"
-              >
-                <CheckCircle className="w-5 h-5" />
-                <span>Approve</span>
-              </motion.button>
+               <motion.button
+                 whileHover={{ scale: 1.02 }}
+                 whileTap={{ scale: 0.98 }}
+                 onClick={() => onDecision('reject', decisionComments)}
+                 className="flex-1 px-6 py-3 rounded-xl border-2 border-red-200 text-red-700 font-medium hover:bg-red-50 transition-all flex items-center justify-center space-x-2"
+               >
+                 <XCircle className="w-5 h-5" />
+                 <span>Archive</span>
+               </motion.button>
+               <motion.button
+                 whileHover={{ scale: 1.02 }}
+                 whileTap={{ scale: 0.98 }}
+                 onClick={() => onDecision('suspend', decisionComments)}
+                 className="flex-1 px-6 py-3 rounded-xl border-2 border-yellow-200 text-yellow-700 font-medium hover:bg-yellow-50 transition-all flex items-center justify-center space-x-2"
+               >
+                 <AlertTriangle className="w-5 h-5" />
+                 <span>Hold</span>
+               </motion.button>
+               <motion.button
+                 whileHover={{ scale: 1.02 }}
+                 whileTap={{ scale: 0.98 }}
+                 onClick={() => onDecision('approve', decisionComments)}
+                 className="flex-1 px-6 py-3 rounded-xl bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium hover:from-green-700 hover:to-emerald-700 transition-all flex items-center justify-center space-x-2 shadow-lg shadow-green-500/30"
+               >
+                 <CheckCircle className="w-5 h-5" />
+                 <span>Launch</span>
+               </motion.button>
             </div>
           </div>
         )}

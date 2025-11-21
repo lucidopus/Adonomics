@@ -278,38 +278,68 @@ export async function analyzeVideo(
     console.log('🎭 Analyzing scenes and creative elements...')
     const sceneAnalysis = await client.analyze({
       videoId,
-      prompt: `Analyze this advertisement scene by scene. For each major scene, describe:
-      - What happens visually
-      - Key objects and elements present
-      - Emotional tone and audience reactions
-      - How it contributes to the overall message
-      Format as a structured list of scenes with timestamps.`,
-      temperature: 0.2
+      prompt: `Analyze this advertisement and return a JSON array of scenes. Each scene must have exact timestamps, objects, and emotions.
+
+Return ONLY a valid JSON array in this exact format:
+[
+  {
+    "start": number (seconds from video start),
+    "end": number (seconds from video start),
+    "description": "Detailed description of what happens in this scene",
+    "objects": ["array", "of", "visible", "objects"],
+    "emotions": ["array", "of", "emotions", "conveyed"]
+  }
+]
+
+Requirements:
+- Use REAL timestamps from the video (don't estimate)
+- Include ALL major scenes and transitions
+- Objects should be specific (e.g., "iPhone 16 Pro Max", "person holding phone", "product logo")
+- Emotions should be specific (e.g., "excitement", "curiosity", "aspiration")
+- Description should be detailed and analytical
+- Return ONLY the JSON array, no additional text`,
+      temperature: 0.1
     })
+
+    console.log('🎬 Raw scene analysis text:', sceneAnalysis?.data);
 
     // Get creative strengths and weaknesses
     console.log('💪 Analyzing creative strengths and weaknesses...')
     const strengthsAnalysis = await client.analyze({
       videoId,
-      prompt: `Evaluate the creative strengths and weaknesses of this advertisement. Consider:
-      - Storytelling effectiveness
-      - Visual impact and production quality
-      - Emotional resonance
-      - Technical execution
-      - Audience engagement potential
-      Provide specific examples and actionable insights.`,
-      temperature: 0.2
+      prompt: `Analyze the creative strengths and weaknesses of this advertisement.
+
+Return ONLY a valid JSON object in this exact format:
+{
+  "strengths": ["Specific strength 1 with explanation", "Specific strength 2 with explanation"],
+  "weaknesses": ["Specific weakness 1 with explanation", "Specific weakness 2 with explanation"]
+}
+
+Consider:
+- Storytelling effectiveness and narrative flow
+- Visual impact and production quality
+- Emotional resonance and audience connection
+- Technical execution and editing
+- Audience engagement potential
+- Brand alignment and messaging clarity
+
+Each item should be specific, actionable, and include why it matters for ad performance.`,
+      temperature: 0.1
     })
 
     // Get target audience insights
     console.log('👥 Analyzing target audience...')
     const audienceAnalysis = await client.analyze({
       videoId,
-      prompt: `Based on the content, visuals, and messaging in this advertisement, identify:
-      - Primary target audience demographics (age, gender, interests, profession)
-      - Psychographic profile (lifestyle, values, aspirations)
-      - Why this audience would be interested in the product/service
-      - Cultural or social context that resonates with them`,
+      prompt: `Based on this advertisement's content, visuals, and messaging, identify the target audience.
+
+Return ONLY a string describing the target audience in 2-3 detailed sentences. Include:
+- Demographics (age range, gender, location, profession)
+- Psychographics (lifestyle, values, interests, aspirations)
+- Why they would be interested in this product
+- Cultural or social context that resonates
+
+Be specific and data-driven based on the ad's content.`,
       temperature: 0.2
     })
 
@@ -319,8 +349,8 @@ export async function analyzeVideo(
     // Parse scene analysis to extract structured scene data
     const scenes = parseSceneAnalysis(sceneAnalysis?.data || '')
 
-    // Parse strengths and weaknesses
-    const { strengths, weaknesses } = parseStrengthsWeaknesses(strengthsAnalysis?.data || '')
+    // Parse strengths and weaknesses from LLM response
+    const { strengths, weaknesses } = parseStrengthsWeaknessesLLM(strengthsAnalysis?.data || '')
 
     // Extract target audience
     const targetAudience = audienceAnalysis?.data || 'General audience'
@@ -386,7 +416,7 @@ export async function analyzeVideo(
 }
 
 /**
- * Parses scene analysis text into structured scene objects
+ * Parses scene analysis text into structured scene objects using LLM-generated JSON
  */
 function parseSceneAnalysis(analysisText: string): Array<{
   start: number
@@ -395,7 +425,17 @@ function parseSceneAnalysis(analysisText: string): Array<{
   objects: string[]
   emotions: string[]
 }> {
-  // Simple parsing logic - in production, you might want more sophisticated NLP
+  try {
+    // Try to parse as JSON first (if LLM returned structured data)
+    const parsed = JSON.parse(analysisText)
+    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].start !== undefined) {
+      return parsed
+    }
+  } catch {
+    // Not JSON, continue with text parsing
+  }
+
+  // If LLM didn't return JSON, try to extract structured data from text
   const scenes: Array<{
     start: number
     end: number
@@ -404,109 +444,103 @@ function parseSceneAnalysis(analysisText: string): Array<{
     emotions: string[]
   }> = []
 
-  // Split by common scene delimiters
-  const sceneBlocks = analysisText.split(/\n\s*(?=Scene|scene|\d+\.|\-)/)
+  // Look for structured scene data in the text
+  const sceneRegex = /Scene\s*\d+[:\s]*\(?(\d+)s?\s*-\s*(\d+)s?\)?[:\s]*(.*?)(?=Scene\s*\d+|$)/gis
+  let match
 
-  sceneBlocks.forEach((block, index) => {
-    if (block.trim().length < 20) return // Skip very short blocks
+  while ((match = sceneRegex.exec(analysisText)) !== null) {
+    const start = parseInt(match[1], 10)
+    const end = parseInt(match[2], 10)
+    const description = match[3].trim()
 
-    // Estimate timing based on index (this is approximate)
-    const start = index * 10 // Rough estimate: 10 seconds per scene
-    const end = (index + 1) * 10
+    if (!isNaN(start) && !isNaN(end) && description) {
+      scenes.push({
+        start,
+        end,
+        description,
+        objects: [], // LLM should provide this
+        emotions: []  // LLM should provide this
+      })
+    }
+  }
 
-    // Extract description
-    const description = block.replace(/^(Scene|scene|\d+\.|\-)\s*/i, '').trim()
-
-    // Simple object extraction (look for common objects)
-    const objects = extractObjects(description)
-
-    // Simple emotion extraction
-    const emotions = extractEmotions(description)
-
-    scenes.push({
-      start,
-      end,
-      description,
-      objects,
-      emotions
-    })
-  })
-
-  // If no scenes were parsed, throw an error
+  // If no structured scenes found, this indicates LLM failed to provide proper format
   if (scenes.length === 0) {
-    throw new Error('Failed to parse any scenes from the analysis text')
+    throw new Error('LLM did not provide scene analysis in expected format. Please check the prompt and try again.')
   }
 
   return scenes
 }
 
 /**
- * Parses strengths and weaknesses from analysis text
+ * Parses strengths and weaknesses from LLM analysis text
  */
-function parseStrengthsWeaknesses(analysisText: string): { strengths: string[], weaknesses: string[] } {
+function parseStrengthsWeaknessesLLM(analysisText: string): { strengths: string[], weaknesses: string[] } {
+  try {
+    // Try to parse as JSON first
+    const parsed = JSON.parse(analysisText)
+    if (parsed.strengths && parsed.weaknesses) {
+      return {
+        strengths: Array.isArray(parsed.strengths) ? parsed.strengths : [parsed.strengths],
+        weaknesses: Array.isArray(parsed.weaknesses) ? parsed.weaknesses : [parsed.weaknesses]
+      }
+    }
+  } catch {
+    // Not JSON, continue with text parsing
+  }
+
+  // Extract from text format
   const strengths: string[] = []
   const weaknesses: string[] = []
 
-  // Split into lines and look for strength/weakness indicators
-  const lines = analysisText.split('\n')
+  // Look for structured sections
+  const strengthSection = analysisText.match(/(?:strengths?|advantages?)(?:\s*:|\n)(.*?)(?:\n\n|\n(?:weaknesses?|disadvantages?)|$)/is)
+  const weaknessSection = analysisText.match(/(?:weaknesses?|disadvantages?)(?:\s*:|\n)(.*?)(?:\n\n|$)/is)
 
-  lines.forEach(line => {
-    const lowerLine = line.toLowerCase().trim()
+  if (strengthSection) {
+    const strengthItems = strengthSection[1].split(/[•\-\*\d+\.]/).filter(item => item.trim().length > 5)
+    strengths.push(...strengthItems.map(item => item.trim()))
+  }
 
-    if (lowerLine.includes('strength') || lowerLine.includes('good') || lowerLine.includes('effective') ||
-        lowerLine.includes('strong') || lowerLine.includes('excellent') || lowerLine.includes('well')) {
-      if (line.length > 10) strengths.push(line.trim())
-    }
+  if (weaknessSection) {
+    const weaknessItems = weaknessSection[1].split(/[•\-\*\d+\.]/).filter(item => item.trim().length > 5)
+    weaknesses.push(...weaknessItems.map(item => item.trim()))
+  }
 
-    if (lowerLine.includes('weakness') || lowerLine.includes('improve') || lowerLine.includes('could') ||
-        lowerLine.includes('weak') || lowerLine.includes('lacking') || lowerLine.includes('issue')) {
-      if (line.length > 10) weaknesses.push(line.trim())
-    }
-  })
+  // If no structured data found, extract from general text
+  if (strengths.length === 0 || weaknesses.length === 0) {
+    const lines = analysisText.split('\n').filter(line => line.trim().length > 10)
 
-  // If no specific strengths/weaknesses found, throw an error
+    lines.forEach(line => {
+      const lowerLine = line.toLowerCase().trim()
+
+      if (lowerLine.includes('strength') || lowerLine.includes('good') || lowerLine.includes('effective') ||
+          lowerLine.includes('strong') || lowerLine.includes('excellent') || lowerLine.includes('well') ||
+          lowerLine.includes('advantage')) {
+        strengths.push(line.trim())
+      }
+
+      if (lowerLine.includes('weakness') || lowerLine.includes('improve') || lowerLine.includes('could') ||
+          lowerLine.includes('weak') || lowerLine.includes('lacking') || lowerLine.includes('issue') ||
+          lowerLine.includes('disadvantage')) {
+        weaknesses.push(line.trim())
+      }
+    })
+  }
+
+  // If still no data, throw error to indicate LLM didn't provide expected format
   if (strengths.length === 0) {
-    throw new Error('Failed to identify any strengths in the analysis text')
+    throw new Error('LLM did not provide strengths analysis in expected format')
   }
 
   if (weaknesses.length === 0) {
-    throw new Error('Failed to identify any weaknesses in the analysis text')
+    throw new Error('LLM did not provide weaknesses analysis in expected format')
   }
 
   return { strengths, weaknesses }
 }
 
-/**
- * Extracts common objects from description text
- */
-function extractObjects(description: string): string[] {
-  const commonObjects = ['person', 'people', 'product', 'logo', 'text', 'screen', 'phone', 'computer', 'car', 'house', 'food', 'drink']
-  const foundObjects: string[] = []
 
-  commonObjects.forEach(obj => {
-    if (description.toLowerCase().includes(obj)) {
-      foundObjects.push(obj)
-    }
-  })
-
-  return foundObjects.length > 0 ? foundObjects : ['advertisement elements']
-}
-
-/**
- * Extracts emotions from description text
- */
-function extractEmotions(description: string): string[] {
-  const commonEmotions = ['happy', 'sad', 'excited', 'frustrated', 'curious', 'trust', 'aspiration', 'joy', 'anger', 'surprise']
-  const foundEmotions: string[] = []
-
-  commonEmotions.forEach(emotion => {
-    if (description.toLowerCase().includes(emotion)) {
-      foundEmotions.push(emotion)
-    }
-  })
-
-  return foundEmotions.length > 0 ? foundEmotions : ['engagement']
-}
 
 /**
  * Checks if a video is ready for analysis

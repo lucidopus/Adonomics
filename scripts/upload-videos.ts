@@ -27,6 +27,14 @@ const VIDEO_FILES = [
   'Unsend Texts RIP Leon.mp4'
 ]
 
+
+interface TaskStatus {
+  id?: string;
+  status: string;
+  videoId?: string;
+  errorMessage?: string;
+}
+
 interface UploadResult {
   filename: string
   taskId: string
@@ -89,19 +97,19 @@ async function uploadVideos() {
         const maxAttempts = 60 // 5 minutes max (5 second intervals)
 
         while (attempts < maxAttempts) {
-          const taskStatus = await tlClient.tasks.retrieve(task.id!)
+          const taskStatus: TaskStatus = await tlClient.tasks.retrieve(task.id!)
 
           if (taskStatus.status === 'ready') {
-            console.log(`   🎉 Video indexed successfully! Video ID: ${(taskStatus as any).videoId}`)
+            console.log(`   🎉 Video indexed successfully! Video ID: ${taskStatus.videoId}`)
             results.push({
               filename,
               taskId: task.id!,
-              videoId: (taskStatus as any).videoId,
+              videoId: taskStatus.videoId,
               status: 'success'
             })
             break
           } else if (taskStatus.status === 'failed') {
-            throw new Error(`Task failed: ${(taskStatus as any).errorMessage || 'Unknown error'}`)
+            throw new Error(`Task failed: ${taskStatus.errorMessage || 'Unknown error'}`)
           } else {
             // Still processing
             console.log(`   ⏳ Status: ${taskStatus.status} (${attempts * 5}s elapsed)`)
